@@ -34,38 +34,29 @@ If I do majors math cs:
         3 math courses:
 
             math 248 - honours advanced calculus (F16) ! (does this count?)
-            math 370 - honours algebra 3 (F17)
+            math 338 - history and philosophy of mathematics (F17)
             math 488 - set theory (W17) !
 
-        3 computer science courses:
+        4 computer science courses: (there's an extra due to skipping 202)
 
             comp 512 - distributed systems (F15) ! (4)
             comp 520 - compiler design (W16) ! (4)
+            comp 621 - program analysis and transformation (F16) ! (4)
 
-            remains one more credit:
-                * I will take a 3-credit comp course, so 1 credit counts as a
-                  complementary and 2 count as electives.
-
-        + 1 additional computer science course, because I didn't do comp 202:
-
-            comp 523 - language-based security
+            Because each is 4-credits, they cover the full 12 credits required.
 
     electives (18 credits ~ 6 courses -- actually 21 credits):
 
-        6 courses: (actually 7)
+        7 courses:
 
-            hgen 396 - human genetics research project (W15) ! (3)
-            comp 531 - advanced theory of computation (W16) ! (3)
-            comp 621 - program analysis and transformation (F16) (4)
-            comp 527 - logic and commputation (W16) ! (3)
+            comp 396 - computer science research project (F17) (3)
+            comp 523 - language-based security (F17) (3)
             comp 525 - formal verification (W17) ! (3)
+            comp 527 - logic and commputation (W16) ! (3)
+            comp 531 - advanced theory of computation (W16) ! (3)
+            hgen 396 - human genetics research project (W15) ! (3)
 
-            remains 2 credits:
-                * see note in comp complementary courses about using a 3-credit
-                  comp course so 2 of its credits count as electives
-
-            + 1 additional elective, because CEGEP exempts me from cal 3:
-                * dunno what that will be yet !
+            Remains one three-credit elective to choose.
 
     Overall:
 
@@ -101,7 +92,7 @@ If I do majors math cs:
         Winter 16:
 
             comp 520 (comp complementary)
-            comp 527 (comp complementary)
+            comp 527 (elective)
             comp 531 (elective, S/U)
 
             10 credits
@@ -110,7 +101,7 @@ If I do majors math cs:
 
             math 242 - analysis 1 (required)
             math 248 - honours advanced calculus (math complementary)
-            comp 621 - program analysis and transformations (elective)
+            comp 621 - program analysis and transformations (comp complementary)
 
             10 credits
 
@@ -123,11 +114,9 @@ If I do majors math cs:
 
         Fall 17:
 
-            math 370 - honours algebra 3 (math complementary)
             math 317 - numerical analysis (required)
-            comp 523 - language based security (comp complementary)
-            one 3-credit comp course:
-                one credit will count towards comp complementary
-                two credits will count towards elective
+            math 417 - mathematical programming (math complementary)
+            comp 396 - computer science research project (elective)
+            comp 523 - language based security (elective)
 
-            + one elective
+            + one elective, S/U
