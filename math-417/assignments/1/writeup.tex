@@ -1,0 +1,363 @@
+\documentclass[11pt,letterpaper]{article}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#1\\Mathematical Programming -- MATH 417}
+\date{12 September 2017}
+
+\usepackage[geometry]{jakemath}
+
+\begin{document}
+
+\maketitle
+
+\section{Some linear algebra}
+
+\begin{prop}
+    If $b_1 = (1, 0, 1)^T$ and $b_2 = (0, 1, 0)^T$ are vectors in $\R^3$,
+    then we can complete them to a basis for $\R^3$ with the vector
+    $b_3 = (1, 0, 0)^T$.
+\end{prop}
+
+\begin{proof}
+    It is easy to see that this is a basis by row-reducing the matrix with
+    these vectors as rows.
+
+    \begin{equation*}
+        \left(\begin{array}{c c c}
+            1 & 0 & 1 \\
+            0 & 1 & 0 \\
+            1 & 0 & 0
+        \end{array}\right)
+        \to
+        \left(\begin{array}{c c c}
+            1 & 0 & 0 \\
+            0 & 1 & 0 \\
+            0 & 0 & 1
+        \end{array}\right)
+    \end{equation*}
+
+    This shows that the row rank of this matrix is $3$, and consequently
+    that the number of linearly independent rows is $3$.
+
+    Furthermore, it is clear that that the three vectors span $\R^3$.
+    Consider an arbitrary vector $(a, b, c)^T \in \R^3$. We can express it
+    as a linear combination of $\{b_1, b_2, b_3\}$ as follows.
+
+    \begin{equation*}
+        (a, b, c)^T = (a + c) b_1 + b b_2 - a b_3
+    \end{equation*}
+\end{proof}
+
+\begin{rem*}
+    Note that the vector $b_3$ that we chose is not unique.
+    For instance, another suitable choice would be $b_3 = (0, 0, 1)$.
+    A similar argument as above would show that this choice for $b_3$
+    along with the given vectors $b_1$ and $b_2$ forms a basis for $\R^3$.
+\end{rem*}
+
+\begin{prop}
+    Let $z_1, \ldots, z_r \in \R^n \setminus \setof{0}$ be nonzero vectors in
+    $\R^n$. Suppose that the vectors are pairwise orthogonal, i.e.
+    \begin{equation*}
+        z_i^T z_j = 0
+    \end{equation*}
+    for any $i, j \in \setof{1,\ldots,r}$ such that $i \neq j$.
+    Then, the vectors are linearly independent.
+\end{prop}
+
+\begin{proof}
+    Suppose that the vectors are not linearly independent.
+    Then, the following equation has a nontrivial solution.
+    %
+    \begin{equation*}
+        0 = \sum_{i=1}^r {\lambda_i z_i}
+    \end{equation*}
+    %
+    Without loss of generality, assume that $\lambda_1 \neq 0$.
+    Then we can expression $z_1$ as a linear combination of the other vectors.
+    %
+    \begin{equation*}
+        z_1 = \frac{1}{\lambda_1} \sum_{i=2}^r {\lambda_i z_i}
+    \end{equation*}
+    %
+    We can transpose both sides and multiply on the right by $z_1$, giving
+    %
+    \begin{equation*}
+        z_1^T z_1
+        = \frac{1}{\lambda_1} \sum_{i=2}^r {\lambda_i \cancelto{0}{z_i^T z_1}}
+        = 0
+    \end{equation*}
+    %
+    However, $z_1^T z_1 = 0$ implies that $z_1 = 0$, which is a contradiction.
+\end{proof}
+
+\begin{prop}
+    Let $z \in \R^n$ be a vector with real entries.
+    Then, $z z^T$ is an $n \times n$ real matrix with rank at most one.
+\end{prop}
+
+\begin{proof}
+    The matrix product $Z = z z^T$ can be expressed componentwise by
+    %
+    \begin{equation*}
+        (Z)_{ij} = z_i z_j
+    \end{equation*}
+    %
+    so consider the $i$\th row of $Z$: it simply a scalar ($z_i$) multiple of
+    the vector $z$.
+
+    We know that elementary row operations preserve the row rank of the matrix,
+    so we may divide the $i$\th row by $z_i$ for each $i$.
+    Consequently, we are left with a matrix consisting of the vector $z$ in
+    every row. Now two cases arise.
+    %
+    \begin{description}
+        \item[Case] $z = 0$.
+
+            Then we have the zero matrix, which sends every vector to the zero
+            vector. Hence, the image of the linear map represented by the
+            matrix is the trivial vector space $\R^0 = \{0\}$. The dimension of
+            this space is zero, so the rank of the zero matrix is zero.
+            Since the rank is preserved by row reduction, we have that
+            $\rank{Z} = 0$.
+
+        \item[Case] $z \neq 0$.
+
+            Then we can reduce further by substracting the first row from every
+            other row. Every row other than the first row is zero.
+
+            The number of linearly independent rows, in this reduced matrix, is
+            trivially one, as there is only one nonzero row.
+            Since the rank is preserved by row reduction, we have that
+            $\rank{Z} = 1$.
+    \end{description}
+    %
+    Therefore, $\rank{Z} \in \{0, 1\}$.
+\end{proof}
+
+\begin{prop}
+    Let $A, B$ be real matrices such that $AB$ is defined.
+    Then,
+    %
+    \begin{equation*}
+        \rank{AB} \leq \min{\rank{A}, \rank{B}}
+    \end{equation*}
+\end{prop}
+
+\begin{proof}
+    We identify with the matrices $A$ and $B$ the linear maps that they
+    represent, $S : U \to W$ and $T : V \to U$, respectively. Then the product
+    of the matrices represents the composition of the linear maps.
+
+    We will examine the kernel of the composed map. Intuitively, every vector
+    that $T$ sends to zero is sent to zero by the composed map.
+    ($S$ can't send the zero vector to a nonzero vector -- this is a simple
+    consequence of linearity.)
+    Of those vectors in $V$ that are not in the kernel of $T$, some of them
+    might be sent by $T$ to vectors in the kernel of $S$.
+    Hence, the kernel of the composed map is at least as big as the kernel of
+    the $T$, in a set theoretic sense. Dually, the image of the composed map
+    is at most as big as the image of $S$.
+
+    We know that
+    %
+    \begin{align*}
+        \vdim \im T &= \vdim V - \vdim \vker T \\
+        \vdim \im S &= \vdim U - \vdim \vker S \\
+        \vdim \im (S \compose T) &= \vdim V - \vdim \vker (S \compose T)
+    \end{align*}
+
+    By substituting, we notice that
+    %
+    \begin{align*}
+        \vdim \im (S \compose T)
+        =
+        \dim \im T + \dim \ker T - \dim \ker (S \compose T)
+    \end{align*}
+
+    The above argument showed that $\ker T \subseteq \ker (S \compose T)$,
+    which implies that $\vdim \ker T \leq \vdim \ker (S \compose T)$.
+    %
+    Hence,
+    %
+    \begin{equation*}
+        \vdim \im (S \compose T) \leq \dim \im T
+    \end{equation*}
+    %
+    so the rank of the product is bounded by the rank of the right matrix.
+
+    Next, we know that if we restrict the domain of a function, then the
+    restricted function's image is a subset of the full image. In our case,
+    %
+    \begin{equation*}
+        \im (S \compose T) = \im (S \restrictto \im T) \subseteq \im S
+    \end{equation*}
+    %
+    Hence, $\vdim \im (S \restrictto \im T) \leq \vdim \im S$,
+    so the rank of the product is bounded by the rank of the left matrix.
+
+    Overall, $\rank{AB} \leq \min\{\rank A, \rank B\}$.
+\end{proof}
+
+\section{Positive (semi)definiteness}
+
+Let $A \in \R^{n \times n}$ be a real symmetric matrix with eigenvalues
+$\lambda_1, \ldots, \lambda_n$.
+
+\begin{prop}
+    The matrix $A$ is positive semi-definite if and only if all its eigenvalues
+    are nonnegative, i.e.
+    %
+    \begin{equation*}
+        x^T A x \geq 0 \iff \lambda_i \geq 0 \forall i
+    \end{equation*}
+\end{prop}
+
+\begin{proof}
+    Suppose that $A$ is positive-semidefinite,
+    i.e. that for all $x \in \R^n$, we have $x^T A x \geq 0$.
+    We want to show that all eigenvalues of $A$ are nonnegative.
+    Consider an arbitrary eigenvalue $\lambda$ of $A$ and a corresponding
+    eigenvector $v$.
+
+    Then,
+    %
+    \begin{align*}
+        A v &= \lambda v \\
+        v^T A v &= v^T \lambda v \geq 0
+    \end{align*}
+    %
+    Since $v$ is an eigenvector, it is nonzero, so $v^T v > 0$.
+    Hence, $\lambda \geq 0$.
+
+    Next suppose that all eigenvalues of $A$ are nonnegative.
+    We want to show that $A$ is positive-semidefinite.
+
+    Take arbitrary $x \in \R^n$.
+    Using the Spectral Theorem, we decompose $A$ into a diagonal matrix of its
+    eigenvalues $\Lambda$ and an orthogonal matrix $Q$
+    %
+    \begin{equation*}
+        A = Q \Lambda Q^T
+    \end{equation*}
+
+    Observe that
+    %
+    \begin{equation*}
+        x^T A x = x^T Q \Lambda Q^T x = (Q^T x) \Lambda (Q^T x)
+    \end{equation*}
+    %
+    so it suffices to consider whether $\Lambda$ is positive-semidefinite.
+    Since all the eigenvalues are nonnegative, $\Lambda$ is indeed
+    positive-semidefinite.
+\end{proof}
+
+In the case where we're interested in positive-definiteness as opposed to
+semidefiniteness, the forwards direction of the proof is unchanged, since
+eigenvectors are nonzero. The reverse direction requires only a slight
+adjustment.
+
+Rather than take an arbitrary $x \in \R^n$, we take a nonzero $x \in \R^n$.
+Then we have to consider whether $Q^T x$ will also be nonzero.
+Since $Q$ is invertible, it has a trivial kernel, so a nonzero input $x$ is
+mapped to a nonzero output. Finally, since all eigenvalues are strictly
+positive, the product $(Q^T x) \Lambda (Q^T x)$ is strictly positive, as it
+works out to a sum of strictly positive summands.
+
+\section{Symmetric matrices, quadratic functions, and infima}
+
+Let $A \in \R^{n \times n}$ be a symmetric matrix, and let $b \in \R^n$.
+
+\begin{prop}
+    The kernel and image of $A$ intersect only at the zero vector, i.e.
+    \begin{equation*}
+        \im A \intersn \vker A = \setof{0}
+    \end{equation*}
+\end{prop}
+
+\begin{proof}
+    Take arbitrary $x \in \R^n$
+    such that $x \in \im A$ and $x \in \vker A$.
+    We know from the Fundamental Subspaces Theorem that
+    %
+    \begin{equation*}
+        (\im A)^\perp = \vker A^T = \vker A
+    \end{equation*}
+    %
+    so $x \in (\im A)^\perp$, i.e. $\innerp{x, u} = 0$ for any $u \in \im A$.
+    In particular, we can choose $u = x \in \im A$, giving
+    %
+    \begin{equation*}
+        \innerp{x, x} = 0
+    \end{equation*}
+    %
+    but this implies that $x = 0$ by positive-definiteness of the inner
+    product.
+
+    Since $x$ is arbitrary, it follows that for any
+    $x \in \im A \intersn \vker A$, we have $x = 0$.
+    Hence,
+    %
+    \begin{equation*}
+        x \in \im A \intersn \vker A = \setof{0}
+    \end{equation*}
+\end{proof}
+
+\begin{prop}
+    The sum of the subspaces $\vker A$ and $\im A$ recovers the whole space
+    $\R^n$, i.e.
+    \begin{equation*}
+        \vker A + \im A = \R^n
+    \end{equation*}
+\end{prop}
+
+\begin{proof}
+    We can speak of a direct sum in the first place precisely because the
+    subspaces meet only at zero.
+    One incusion is obvious, so we look at the other.
+
+    By the Fundamental Subspaces Theorem and the symmetry of $A$,
+    we can consider
+    $\vker A + \im A = (\im A)^\perp + \im A = W$, and we will show that
+    $W = \R^n$.
+    Choose an orthonormal basis for $W$, and complete it to an orthonormal
+    basis for $\R^n$. Suppose $W \neq \R^n$.
+    Then the basis for $\R^n$ must be bigger.
+    Let $e$ be one such ``extra'' basis vector for $\R^n$,
+    so $e \notin W$.
+    Since the bases are orthonormal, $e$ must be orthogonal to $W$, and in
+    particular to $\im A$. But this implies that $e \in (\im A)^\perp$ and
+    hence that $e \in W$, which is a contradiction.
+\end{proof}
+
+\section{Minimizing a linear function over the unit ball}
+
+Let $g \in \R^n \setminus \{0\}$. We wish to compute
+%
+\begin{equation*}
+    \min \innerp{g, d} \text{ s.t. } |d| \leq 1
+\end{equation*}
+
+In other words, $g$ is an arbitrary nonzero vector, $d$ is a vector of
+length at most one, and we wish to vary $d$ to find the minimal inner product
+between the vectors.
+
+The inner product amounts to computing
+%
+\begin{equation*}
+    \sum_{i=1}^n g_i d_i
+\end{equation*}
+%
+but this is not very helpful when considering the constraint on the length of
+$d$. Instead we can compute the inner product by
+%
+\begin{equation*}
+    |g| \cdot |d| \cdot \cos \theta
+\end{equation*}
+%
+where $\theta$ is the angle between the vectors.
+We choose $d$ so that it has maximal (i.e. unit) length, and we choose $\theta$
+so that its cosine is $-1$, i.e. $\theta = \pi$.
+Hence, the minimum of the function subject to the constraint is simply $-|g|$.
+
+\end{document}
