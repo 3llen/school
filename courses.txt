@@ -115,7 +115,8 @@ If I do majors math cs:
         Fall 17:
 
             math 317 - numerical analysis (required)
-            math 417 - mathematical programming (math complementary)
+            math 338 - history and philosophy of mathematics (math complementary)
+            comp 230 - logic and computability (elective)
             comp 396 - computer science research project (elective)
             comp 523 - language based security (elective)
 
