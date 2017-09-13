@@ -7,5 +7,6 @@ all:
 	make -C math-340
 	make -C math-417
 	make -C math-488
+	make -C comp-230
 	make -C comp-621
 	make -C comp-525
