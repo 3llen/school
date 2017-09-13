@@ -1,0 +1,199 @@
+\documentclass[11pt,letterpaper]{article}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#1\\Logic and computability -- COMP 230}
+\date{21 September 2017}
+
+\usepackage[geometry]{jakemath}
+
+\begin{document}
+
+\maketitle
+
+\section{A simple mathematical proof}
+
+\begin{prop}
+    For any natural number $a$, we have that $a^2$ is even if and only if $a$
+    is even.
+\end{prop}
+
+\begin{proof}
+    Take an arbitrary natural number $a$.
+
+    First, suppose that $a^2$ is even.
+    We want to show that there exists a natural number $b^\prime$ such that
+    $2b^\prime = a$.
+    By the definition of an even number, there exists a natural number $b$ such
+    that $2b = a^2$. Dividing both sides by $a$, we deduce that
+    %
+    \begin{equation*}
+        2 \frac{b}{a} = a
+    \end{equation*}
+    %
+    and hence that $b^\prime = \frac{b}{a}$.
+    By the definition of an even number, we conclude that $a$ is even.
+
+    Next, suppose that $a$ is even.
+    We want to show that there exists a natural number $b^\prime$ such that
+    $2b^\prime = a^2$.
+    By the definition of an even number, there exists a natural number $b$ such
+    that $2b = a$.
+    Multiplying both sides by $a$, we deduce that
+    %
+    \begin{equation*}
+        2 b a = a^2
+    \end{equation*}
+    %
+    so taking $b^\prime = b a$, we conclude that $a^2$ is even.
+\end{proof}
+
+\section{Recursive definitions}
+
+\begin{description}
+    \newcommand{\terms}{\mathbf{Term}}
+    \newcommand{\true}{\mathtt{true}}
+    \newcommand{\false}{\mathtt{false}}
+    \newcommand{\Succ}{\operatorname{\mathtt{succ}}}
+    \newcommand{\iszero}{\operatorname{\mathtt{iszero}}}
+    \newcommand{\ifthenelse}[3]{%
+        \mathtt{if}\; #1 \;\mathtt{then}\; #2 \;\mathtt{else}\; #3%
+    }
+    \newcommand{\bool}{\mathtt{bool}}
+    \newcommand{\nat}{\mathtt{nat}}
+    \newcommand{\hastype}{\operatorname{:}}
+    %
+    \item[Abstract syntax trees.]
+        Generally speaking, we can formulate a recursive definition for
+        arbitrary trees, in which case a programming language's abstract syntax
+        tree is just a special case.
+
+        We can define the set of terms $\terms$ in our toy language as follows.
+        Our language will have as values the natural numbers and booleans.
+
+        The base clauses are as follows.
+        $$
+        \infer{\true \in \terms}{}
+        \quad
+        \infer{\false \in \terms}{}
+        \quad
+        \infer{0 \in \terms}{}
+        $$
+
+        The inductive clauses are as follows.
+        $$
+        \infer{\ifthenelse{t}{s_1}{s_2}}{t, s_1, s_2 \in \terms}
+        \quad
+        \infer{\Succ t \in \terms}{t \in \terms}
+        \quad
+        \infer{t + s \in \terms}{t, s \in \terms}
+        \quad
+        \infer{\iszero t \in \terms}{t \in \terms}
+        $$
+
+        The final clause is that nothing but the terms constructed in this way
+        are in $\terms$.
+
+    \item[Typing derivations.]
+        Next, we can describe the typing rules for this programming language.
+
+        The base clauses are as follows.
+        %
+        $$
+        \infer{\true \hastype \bool}{}
+        \quad
+        \infer{\false \hastype \bool}{}
+        \quad
+        \infer{0 \hastype \nat}{}
+        $$
+        
+        The inductive clauses are as follows.
+        %
+        $$
+        \infer{\Succ n \hastype \nat}{n \hastype \nat}
+        \quad
+        \infer{n + m \hastype \nat}{n, m \hastype \nat}
+        \quad
+        \infer{\ifthenelse{t}{s_1}{s_2} \hastype \alpha}{%
+            t \hastype \bool
+            &
+            s_1, s_2 \hastype \alpha
+        }
+        \quad
+        \infer{\iszero t \hastype \bool}{t \hastype \nat}
+        $$
+
+        This inductively defines the relation $\hastype$ (``has type''), which
+        in this case is a subset of $\terms \times *$ where
+        $* = \{\nat, \bool\}$ is a finite universe of types.
+
+    \item[Operational semantics.]
+        We can define the operation of an abstract machine for evaluating the
+        expressions in this programming language. In particular we define a
+        small-step semantics in the form of a relation
+        $\to \subset \terms \times \terms$.
+
+        The base clause that values step to themselves, as there is nothing to
+        do. But what are values? An inductive definition would be necessary to
+        define them as $\true$, $\false$, $0$, and $\Succ v$ if $v$ is a value.
+        We will skip this definition since it's uninteresting and take for
+        granted that a set $V$ of values is defined. So we can now formulate
+        the essential base clause.
+        %
+        $$
+        \infer{v \to v}{v \in V}
+        $$
+        %
+        Note that this is a base clause \emph{even though} it is not an
+        \emph{axiom}: the premise does not rely on the relation $\to$ that we
+        are defining!
+
+        There are additional base clauses that implement the built-in functions
+        $+$, $\iszero$, and the conditional.
+        %
+        $$
+        \infer{0 + m \to m}{m \in V}
+        \quad
+        \infer{\Succ n + m \to \Succ (n + m)}{n, m \in V}
+        \quad
+        \infer{\iszero 0 \to \true}{}
+        \quad
+        \infer{\iszero (\Succ n) \to \false}{n \in V}
+        $$
+        %
+        $$
+        \infer{\ifthenelse{\true}{s_1}{s_2} \to s_1}{s_1, s_2 \in V}
+        \quad
+        \infer{\ifthenelse{\false}{s_1}{s_2} \to s_2}{s_1, s_2 \in V}
+        $$
+
+        Finally, situations such as
+        $$
+        \Succ (\ifthenelse{\true}{0}{1})
+        $$
+        are dealt with by the inductive clauses.
+        %
+        $$
+        \infer{\Succ t \to \Succ t^\prime}{t \to t^\prime}
+        \quad
+        \infer{\iszero t \to \iszero t^\prime}{t \to t^\prime}
+        $$
+        %
+        $$
+        \infer{
+            \ifthenelse{t}{s_1}{s_2}
+            \to
+            \ifthenelse{t^\prime}{s_1^\prime}{s_2^\prime}
+        }{
+            t \to t^\prime
+            &
+            s_1 \to s_1^\prime
+            &
+            s_2 \to s_2^\prime
+        }
+        $$
+
+        As a final clause, we can say that the relation
+        $\to \subseteq \terms \times \terms$ is exactly given by these rules.
+\end{description}
+
+\end{document}
