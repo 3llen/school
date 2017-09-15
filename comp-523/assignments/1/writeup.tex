@@ -1,0 +1,73 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[geoemtry]{jakemath}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#1\\Language-based security -- COMP 523}
+\date{20 September 2017}
+
+\begin{document}
+
+\maketitle
+
+\section{Order of evaluation}
+
+The proposed new evaluation rules for E-PRED-SUCC and E-ISZERO-SUCC affect the
+order of evaluation. In particular, rather than require numerical values (i.e.
+that the inside be evaluated first), the new rules allow unevaluated terms to
+be manipulated. Second, the new rule for E-PRED-SUCC in fact changes the order
+of the \texttt{pred} and \texttt{succ} operations.
+
+\begin{description}
+    \newcommand{\Succ}{\operatorname{\mathtt{succ}}}
+    \newcommand{\Pred}{\operatorname{\mathtt{pred}}}
+    \item[E-PRED-SUCC.]
+        Consider the term \texttt{succ (pred 0)}.
+        Using the new, non-strict E-PRED-SUCC rule, we can cancel the
+        \texttt{succ pred}, leaving us with \texttt{0}.
+        However, we can \emph{also} (and this is where we have nondeterminism)
+        evaluate inside the \texttt{succ} to reduce \texttt{pred 0} to
+        \texttt{0}, followed by reducing \texttt{succ 0} to \texttt{1}.
+
+        Not only is evaluation nondeterministic, but different evaluation
+        orders lead to different results! In other words, we also lose
+        \emph{confluence}.
+
+        (I think that the rule $\Pred (\Succ t) \to t$  would give a
+        nondeterministic but confluent semantics, since we're certain that
+        $\Succ t$ will always evaluate to a successor, so taking the
+        predecessor will always work out.)
+
+    \item[E-ISZERO-SUCC.]
+        Consider a term like \texttt{iszero (succ (pred 0))}.
+        There are two different ways to evaluate this term using the lazy
+        variant of E-ISZERO-SUCC. We could go inside using the E-ISZERO
+        congruence rule, or we could immediately determine that the inner term
+        is nonzero since it has a \texttt{succ} constructor.
+
+        In the presence of the broken E-PRED-SUCC rule, these different
+        evaluation strategies will lead to different results. But let's forget
+        about the broken E-PRED-SUCC rule and concentrate on whether
+        E-ISZERO-SUCC is broken. In this case, it's clear from the rules that
+        a leading \texttt{succ} constructor can never be eliminated. Hence,
+        once we determine that $\iszero t$ is such that $t$ is of
+        the form $\Succ t^\prime$, then it doesn't matter what $t^\prime$ is:
+        the leading \texttt{succ} isn't going anywhere.
+
+        Overall, what this means is that if we use the traditional E-PRED-SUCC
+        rule, (or possibly as discussed above the lazy variant that doesn't
+        reverse the order of the $\Pred$ and $\Succ$ constructors,) then the
+        lazy E-ISZERO-SUCC leads to the same results as the strict variant. In
+        other words, the system is still \emph{confluent}. However, it would be
+        possible to chain the E-ISZERO and E-SUCC congruence rules to evaluate
+        inside the $\Succ$. Therefore the system will be nondeterministic.
+\end{description}
+
+\section{Values evaluate to themselves}
+
+\begin{prop}
+    In the small-step semantics, all values evaluate to themselves,
+    i.e. if $v \in V$ and $v \to^* v^\prime$, then $v = v^\prime$.
+\end{prop}
+
+\end{document}
