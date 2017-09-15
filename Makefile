@@ -9,4 +9,5 @@ all:
 	make -C math-488
 	make -C comp-230
 	make -C comp-621
+	make -C comp-523
 	make -C comp-525
