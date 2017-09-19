@@ -1,6 +1,6 @@
 \documentclass[11pt,letterpaper]{article}
 
-\usepackage[geoemtry]{jakemath}
+\usepackage[geometry]{jakemath}
 
 \author{Jacob Thomas Errington (260636023)}
 \title{Assignment \#1\\Language-based security -- COMP 523}
@@ -21,6 +21,7 @@ of the \texttt{pred} and \texttt{succ} operations.
 \begin{description}
     \newcommand{\Succ}{\operatorname{\mathtt{succ}}}
     \newcommand{\Pred}{\operatorname{\mathtt{pred}}}
+    \newcommand{\iszero}{\operatorname{\mathtt{iszero}}}
     \item[E-PRED-SUCC.]
         Consider the term \texttt{succ (pred 0)}.
         Using the new, non-strict E-PRED-SUCC rule, we can cancel the
@@ -33,7 +34,7 @@ of the \texttt{pred} and \texttt{succ} operations.
         orders lead to different results! In other words, we also lose
         \emph{confluence}.
 
-        (I think that the rule $\Pred (\Succ t) \to t$  would give a
+        (I think that the rule $\Pred (\Succ t) \evalto t$  would give a
         nondeterministic but confluent semantics, since we're certain that
         $\Succ t$ will always evaluate to a successor, so taking the
         predecessor will always work out.)
@@ -67,7 +68,542 @@ of the \texttt{pred} and \texttt{succ} operations.
 
 \begin{prop}
     In the small-step semantics, all values evaluate to themselves,
-    i.e. if $v \in V$ and $v \to^* v^\prime$, then $v = v^\prime$.
+    i.e. if $v \in V$ and $v \evalto^* v^\prime$, then $v = v^\prime$.
 \end{prop}
+
+\begin{proof}
+    By structural induction on the multistep evaluation $v \evalto^* v^\prime$.
+
+    \begin{description}
+        \item[Case] the reflexitivity rule. Then,
+            \begin{equation*}
+                \infer[\text{refl}]{v \evalto^* v}{}
+            \end{equation*}
+            for a value $v$,
+            so $v = v^\prime$ trivially.
+
+        \item[Case] the transitivity rule. Then,
+            \begin{equation*}
+                \infer[\text{trans}]{v \evalto^* v^\prime}{
+                    v \evalto^* w
+                    &
+                    w \evalto^* v^\prime
+                }
+            \end{equation*}
+            for values $v$, $w$, and $v^\prime$.
+
+            By the induction hypothesis,
+            we deduce that $v = w$ and $w = v^\prime$.
+            By the transitivity of equality, we conclude that $v = v^\prime$.
+
+        \item[Case] the singleton rule. Then,
+            \begin{equation*}
+                \infer[\text{sing}]{v \evalto^* v^\prime}{
+                    v \evalto v^\prime
+                }
+            \end{equation*}
+            for values $v$ and $v^\prime$.
+
+            We claim that the premise of this rule is impossible. We prove this
+            by structural induction on the value $v$.
+
+            If $v = \mathtt{true}$, then we reach a contradiction, as no
+            evaluation rules apply. The same can be said for
+            $v = \mathtt{false}$, and $v = \mathtt{0}$.
+            One inductive case needs to be checked as well: E-SUCC.
+            The induction hypothesis tells us that premise of the E-SUCC rule
+            is impossible, so we can deduce that it's conclusion is impossible
+            as well.
+
+            Hence, the singleton rule is an impossible case.
+    \end{description}
+
+    Intuitively, values step to themselves in the multistep semantics because
+    we are only allowed to use reflexivity and to chain reflexivity statements
+    together with transitivity.
+\end{proof}
+
+\section{An alternative formulation of the multistep rules}
+
+Consider the alternative formulation of the multistep semantics.
+%
+\newcommand{\altevalto}{\Longrightarrow}
+
+\begin{equation*}
+    \infer[\text{m-refl}]{t \altevalto^* t}{}
+    \quad
+    \infer[\text{m-step}]{t \altevalto^* t^\prime}{
+        t \evalto s
+        &
+        s \altevalto^* t^\prime
+    }
+\end{equation*}
+
+\begin{prop}
+    The step formulation is equivalent to the reflexive-transitive
+    closure formulation, i.e.
+    $t \evalto^* t^\prime$ if and only if $t \altevalto^* t^\prime$.
+\end{prop}
+
+Before engaging in the proof of this proposition, we require the following
+transitivity lemma for the step formulation.
+
+\begin{lem}[Transitivity]
+    Suppose $\mathcal{D}_1 : t \altevalto^* s$
+    and $\mathcal{D}_2 : s \altevalto^* t^\prime$.
+    Then, there exists $\mathcal{E}$
+    such that $\mathcal{E} : t \altevalto^* t^\prime$.
+\end{lem}
+
+\begin{proof}
+    By induction on the structure of the derivation $\mathcal{D}_1$.
+
+    \begin{description}
+        \item[Case] reflexivity.
+
+            Then we have
+            %
+            \begin{equation*}
+                \mathcal{D}_1 = \infer[\text{m-refl}]{t \altevalto^* t}{}
+            \end{equation*}
+
+            Then we discover that $s = t$,
+            so by substitution we have that
+            %
+            \begin{equation*}
+                \deduce[\mathcal{D}_2]{t \altevalto^* t^\prime}{}
+            \end{equation*}
+            %
+            Thus we simply take $\mathcal{E} = \mathcal{D}_2$.
+
+        \item[Case] step.
+
+            Then we have
+            %
+            \begin{equation*}
+                \mathcal{D}_1 = \infer[\text{m-step}]{
+                    t \altevalto^* s
+                }{
+                    \deduce[\mathcal{F}]{t \evalto t_1}{}
+                    &
+                    \deduce[\mathcal{D}_1^\prime]{t_1 \altevalto^* s}{}
+                }
+            \end{equation*}
+
+            We apply the induction hypothesis on
+            $\mathcal{D}_1^\prime : t_1 \altevalto^* s$
+            and
+            $\mathcal{D}_2 : s \altevalto^* t^\prime$
+            to obtain
+            $\mathcal{E}^\prime : t_1 \altevalto^* t^\prime$.
+
+            Then we construct $\mathcal{E}$ as follows.
+            %
+            \begin{equation*}
+                \infer[\text{m-step}]{
+                    t \altevalto^* s
+                }{
+                    \deduce[\mathcal{F}]{t \evalto t_1}{}
+                    &
+                    \deduce[\mathcal{E}^\prime]{t_1 \altevalto^* t^\prime}{}
+                }
+            \end{equation*}
+    \end{description}
+\end{proof}
+
+\begin{proof}[Proof of proposition.]
+    Suppose $t \evalto^* t^\prime$. Now proceed by induction on the evaluation
+    derivation.
+
+    \begin{description}
+        \item[Case] reflexivity.
+            Then we have
+            \begin{equation*}
+                \infer[\text{refl}]{t \evalto^* t}{}
+            \end{equation*}
+            so we discover that $t = t^\prime$.
+
+            We construct a derivation for $t \altevalto^* t^\prime$ using the
+            \texttt{m-refl} rule:
+            %
+            \begin{equation*}
+                \infer[\text{m-refl}]{t \altevalto^* t}{}
+            \end{equation*}
+
+        \item[Case] singleton.
+            Then we have
+            \begin{equation*}
+                \infer[\text{sing}]{t \evalto^* t^\prime}{
+                    \deduce[\mathcal{D}]{t \evalto t^\prime}{}
+                }
+            \end{equation*}
+
+            We construct a derivation for $t \altevalto^* t^\prime$.
+            %
+            \begin{equation*}
+                \infer[\text{m-step}]{t \evalto^* t^\prime}{
+                    \deduce[\mathcal{D}]{t \evalto t^\prime}{}
+                    &
+                    \infer[\text{m-refl}]{t^\prime \altevalto^* t^\prime}{}
+                }
+            \end{equation*}
+
+        \item[Case] transitivity.
+            Then we have
+            \begin{equation*}
+                \infer[\text{trans}]{t \evalto^* t^\prime}{
+                    \deduce[\mathcal{D}_1]{t \evalto^* s}{}
+                    &
+                    \deduce[\mathcal{D}_2]{s \evalto^* t^\prime}{}
+                }
+            \end{equation*}
+
+            By the induction hypothesis, we obtain the following derivations.
+            \begin{align*}
+                \mathcal{E}_1 &: t \altevalto^* s \\
+                \mathcal{E}_2 &: s \altevalto^* t^\prime
+            \end{align*}
+
+            Using the transitivity lemma for the step formulation, we obtain
+            $\mathcal{E} : t \altevalto^* t^\prime$, as required.
+    \end{description}
+
+    Next, suppose that $t \altevalto^* t^\prime$.
+    Now we proceed by induction on the step formuation evaluation derivation.
+
+    \begin{description}
+        \item[Case] reflexivity.
+
+            Then we have
+            %
+            \begin{equation*}
+                \infer[\text{m-refl}]{t \altevalto^* t}{}
+            \end{equation*}
+            %
+            so we discover that $t^\prime = t$.
+
+            We construct the derivation $\mathcal{E}$ as follows.
+            %
+            \begin{equation*}
+                \infer[\text{refl}]{t \evalto^* t}{}
+            \end{equation*}
+
+        \item[Case] step.
+
+            Then we have
+            %
+            \begin{equation*}
+                \infer[\text{m-step}]{
+                    t \altevalto^* t^\prime
+                }{
+                    \deduce[\mathcal{F}]{t \evalto s}{}
+                    &
+                    \deduce[\mathcal{D}^\prime]{s \altevalto^* t^\prime}{}
+                }
+            \end{equation*}
+
+            We apply the induction hypothesis to
+            $\mathcal{D}^\prime : s \altevalto^* t^\prime$
+            to obtain
+            $\mathcal{E}^\prime : s \evalto^* t^\prime$.
+
+            We construct the derivation $\mathcal{E}$ as follows.
+            %
+            \begin{equation*}
+                \infer[\text{trans}]{
+                    t \evalto^* t^\prime
+                }{
+                    \infer[\text{sing}]{t \evalto^* s}{
+                        \deduce[\mathcal{F}]{t \evalto s}{}
+                    }
+                    &
+                    \deduce[\mathcal{E}^\prime]{s \evalto^* t^\prime}{}
+                }
+            \end{equation*}
+    \end{description}
+
+    This completes the proof that the step formulation is equivalent to the
+    reflexive-transitive closure formulation.
+\end{proof}
+
+\section{Less than or equals}
+\newcommand{\Succ}{\operatorname{\mathtt{succ}}}
+\newcommand{\Leq}[2]{\operatorname{\mathtt{leq}} #1 \; #2}
+
+We extend the arithmetic language with a built-in comparison operator.
+
+\begin{enumerate}
+    \item
+        Here are evaluation rules for the new operator.
+
+        \begin{align*}
+            \infer[\text{E-LEQ-1}]{
+                \Leq{t}{s}
+                \evalto
+                \Leq{t^\prime}{s}
+            }{
+                t \evalto t^\prime
+            }
+            &\quad
+            \infer[\text{E-LEQ-2}]{
+                \Leq{v}{s}
+                \evalto
+                \Leq{v}{s^\prime}
+            }{
+                s \evalto s^\prime
+            }
+            \\
+            \infer[\text{E-LEQ-Z}]{
+                \Leq{0}{v}
+                \evalto
+                \mathtt{true}
+            }{}
+            &\quad
+            \infer[\text{E-LEQ-SUCC}]{
+                \Leq{(\Succ v_1)}{(\Succ v_2)}
+                \evalto
+                \Leq{v_1}{v_2}
+            }{}
+            \\
+            \infer[\text{E-LEQ-SUCC-Z}]{
+                \Leq{(\Succ v)}{0}
+                \evalto
+                \mathtt{false}
+            }{}
+            &\quad
+        \end{align*}
+\end{enumerate}
+
+The rules are based on the following intuitive idea of how evaluation should
+proceed.
+\begin{enumerate}
+    \item Evaluate the first operand.
+    \item Evaluate the second operand.
+    \item Peel off successors until a zero is reached.
+    \item If the first operand is zero, then the comparison is true.
+    \item Else, the second operand is zero, so the comparison is false.
+\end{enumerate}
+
+\begin{prop}
+    The given rules for the comparison operator are deterministic,
+    i.e. if $\mathcal{D}_1 : s \evalto s_1$
+    and $\mathcal{D}_2 : s \evalto s_2$,
+    then $s_1 = s_2$.
+\end{prop}
+
+\begin{proof}
+    By structural induction on $\mathcal{D}_1 : s \evalto s_1$.
+
+    \begin{description}
+        \item[Case] E-LEQ-Z.
+
+            Then we have $s = \Leq{0}{v}$
+            for a value $v$
+            and $s_1 = \mathtt{true}$.
+
+            Let's examine which rules could construct $\mathcal{D}_2$.
+            %
+            \begin{itemize}
+                \item
+                    Since $0$ is a value, E-LEQ-1 could not apply.
+                \item
+                    Since $v$ is a value, E-LEQ-2 could not apply.
+                \item
+                    Since $0$ is distinct from $\Succ u$ for any $u$,
+                    E-LEQ-SUCC or E-LEQ-SUCC-Z could not apply.
+            \end{itemize}
+
+            So the only applicable rule would be E-LEQ-Z, thus showing that
+            $s_2 = \mathtt{true} = s_1$.
+
+        \item[Case] E-LEQ-SUCC.
+
+            Then we have $s = \Leq{(\Succ v_1)}{(\Succ v_2)}$
+            and $s_1 = \Leq{v_1}{v_2}$.
+
+            Let's examine which rules could construct $\mathcal{D}_2$.
+            %
+            \begin{itemize}
+                \item
+                    Since $0$ is distinct from $\Succ u$ for any $u$,
+                    E-LEQ-Z or E-LEQ-SUCC-Z could not apply.
+                \item
+                    Since $\Succ v_1$ is a value, E-LEQ-1 could not apply.
+                \item
+                    Since $\Succ v_2$ is a value, E-LEQ-2 could not apply.
+            \end{itemize}
+
+            So the only applicable rule would be E-LEQ-SUCC, thus showing that
+            $s_2 = \Leq{v_1}{v_2} = s_1$.
+
+        \item[Case] E-LEQ-SUCC-Z.
+
+            Then we have $s = \Leq{(\Succ v)}{0}$
+            and $s_1 = \mathtt{false}$.
+
+            I'll spare a full listing.
+            The only rule that admits $\Leq{(\Succ v)}{0}$ on the left-hand
+            side in the conclusion is E-LEQ-SUCC-Z; every other rule would
+            require either one of the operands to be an unevaluated term or
+            different constructors for the operands.
+
+            Since the same rule had to be used in $\mathcal{D}_1$ and in
+            $\mathcal{D}_2$, we can conclude that $s_1 = s_2$.
+
+        \item[Case] E-LEQ-2.
+
+            Then we have $s = \Leq{v}{t}$
+            and $s_1 = \Leq{v}{t_1}$.
+
+            The only rule that admits $\Leq{v}{t}$ on the left hand side of the
+            conclusion is E-LEQ-1; the other rules require that both operands
+            be fully evaluated or that neither be fully evaluated.
+
+            Since the rule E-LEQ-2 had to be used in $\mathcal{D}_1$ and in
+            $\mathcal{D}_2$, we obtain smaller derivations
+            $\mathcal{D}_1^\prime : t \evalto t_1$
+            and $\mathcal{D}_2^\prime : t \evalto t_2$.
+            Applying the induction hypothesis, we deduce that
+            $t_1 = t_2$.
+            By a substitution, we conclude that $\Leq{v}{t_1} = \Leq{v}{t_2}$.
+
+        \item[Case] E-LEQ-1.
+
+            This case is the same as E-LEQ-2, with the only difference being
+            that we look at the first operand instead of the second.
+
+            No rule but E-LEQ-1 could have been used for $\mathcal{D}_2$ for
+            the same reason: E-LEQ-1 is the only rule permitting unevaluated
+            terms in both operands.
+
+            We apply the induction hypothesis in the same way and use a
+            substitution to conclude that
+            $s_1 = \Leq{t_1}{t} = \Leq{t_2}{t} = s_2$.
+    \end{description}
+\end{proof}
+
+Here is a typing rule for $\Leq{t}{t^\prime}$.
+
+\begin{equation*}
+    \infer[\text{t-leq}]{\Leq{t}{t^\prime} \hastype \mathtt{bool}}{
+        t \hastype \mathtt{nat}
+        &
+        t^\prime \hastype \mathtt{nat}
+    }
+\end{equation*}
+
+\begin{prop}
+    Type preservation holds in the language extended by the comparison
+    operator,
+    i.e.
+    if $t \hastype T$ and $t \evalto t^\prime$, then $t^\prime \hastype T$.
+\end{prop}
+
+\begin{proof}
+    By structural induction on $\mathcal{D} : t \evalto t^\prime$.
+
+    \begin{description}
+        \item[Case] E-LEQ-Z.
+
+            Then we have
+            %
+            \begin{equation*}
+                \infer[\text{E-LEQ-Z}]{
+                    \Leq{0}{v}
+                    \evalto
+                    \mathtt{true}
+                }{}
+            \end{equation*}
+            %
+            so $t = \Leq{0}{v}$ and $t^\prime = \mathtt{true}$.
+
+            By the typing rule ``t-leq'' we deduce that
+            $\Leq{0}{v} \hastype \mathtt{bool}$.
+            By the trivial typing rule for $\mathtt{true}$, we deduce that
+            $\mathtt{true} \hastype \mathtt{bool}$ as required.
+
+        \item[Case] E-LEQ-SUCC-Z.
+
+            Then we have
+            %
+            \begin{equation*}
+                \infer[\text{E-LEQ-SUCC-Z}]{
+                    \Leq{(\Succ v)}{0}
+                    \evalto
+                    \mathtt{false}
+                }{}
+            \end{equation*}
+
+            The argument is the same as in the previous case.
+
+        \item[Case] E-LEQ-SUCC.
+
+            Then we have
+            %
+            \begin{equation*}
+                \infer[\text{E-LEQ-SUCC}]{
+                    \Leq{(\Succ v_1)}{(\Succ v_2)}
+                    \evalto
+                    \Leq{v_1}{v_2}
+                }{}
+            \end{equation*}
+
+            By the typing rule t-leq, we deduce that both sides have type
+            $\mathtt{bool}$, so the types are preserved.
+
+        \item[Case] E-LEQ-1.
+
+            Then we have
+            %
+            \begin{equation*}
+                \infer[\text{E-LEQ-1}]{
+                    \Leq{u}{s}
+                    \evalto
+                    \Leq{u^\prime}{s}
+                }{
+                    \deduce[\mathcal{D}^\prime]{u \evalto u^\prime}{}
+                }
+            \end{equation*}
+            %
+            so $t = \Leq{u}{s}$ and $t^\prime = \Leq{u^\prime}{s}$.
+
+            By the typing rule t-leq, we deduce that $u \hastype \mathtt{nat}$
+            and $s \hastype \mathtt{nat}$.
+            By the induction hypothesis applied to $u \hastype \mathtt{nat}$
+            and $\mathcal{D}^\prime$,
+            we deduce that $u^\prime \hastype \mathtt{nat}$.
+            By the typing rule t-leq, we conclude that
+            $\Leq{u^\prime}{s} \hastype \mathtt{bool}$, thus showing that the
+            type is preserved.
+
+        \item[Case] E-LEQ-2.
+
+            Then we have
+            %
+            \begin{equation*}
+                \infer[\text{E-LEQ-2}]{
+                    \Leq{v}{s}
+                    \evalto
+                    \Leq{v}{s^\prime}
+                }{
+                    s \evalto s^\prime
+                }
+            \end{equation*}
+            %
+            so $t = \Leq{v}{s}$ and $t^\prime = \Leq{v}{s^\prime}$.
+
+            By the typing rule t-leq, we deduce that $v \hastype \mathtt{nat}$
+            and $s \hastype \mathtt{nat}$.
+            By the inductive hypothesis applied to $s \hastype \mathtt{nat}$
+            and the smaller derivation $\mathcal{D}^\prime$, we deduce that
+            $s^\prime \hastype \mathtt{nat}$.
+            By the typing rule t-leq, we conclude that
+            $\Leq{v}{s^\prime} \hastype \mathtt{bool}$, as required.
+
+            Thus this rule preserves typing.
+    \end{description}
+
+    Therefore, evaluation in the extended language preserves typing.
+\end{proof}
 
 \end{document}
