@@ -161,10 +161,10 @@ transitivity lemma for the step formulation.
     \begin{description}
         \item[Case] reflexivity.
 
-            Then we have
+            Then we have that $\mathcal{D}_1$ is of the form
             %
             \begin{equation*}
-                \mathcal{D}_1 = \infer[\text{m-refl}]{t \altevalto^* t}{}
+                \infer[\text{m-refl}]{t \altevalto^* t}{}
             \end{equation*}
 
             Then we discover that $s = t$,
@@ -178,10 +178,10 @@ transitivity lemma for the step formulation.
 
         \item[Case] step.
 
-            Then we have
+            Then we have that $\mathcal{D}_1$ is of the form
             %
             \begin{equation*}
-                \mathcal{D}_1 = \infer[\text{m-step}]{
+                \infer[\text{m-step}]{
                     t \altevalto^* s
                 }{
                     \deduce[\mathcal{F}]{t \evalto t_1}{}
