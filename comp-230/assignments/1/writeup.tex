@@ -351,20 +351,138 @@ gc
                     \end{description}
 
                 \item[Step case.]
-                    Suppose $a > b$.gc
-                    We have $b > 0$ and we want to show that if $a > b$ then we
-                    can obtain a geq-string with $a$ hyphens on the left and
-                    $b$ hyphens on the right.
-
-                    Suppose $a > b$. Since $b > 0$,gc
-                    $s = \geqs{x}{y}$
-                    with $a$ hyphens on the left and $b$ hyphens on the right.
-                    Since $a > b$ and $b > 0$, the form of the string that we
-                    have is in fact $s = \geqs{x^\prime -}{y^\prime -}$.
-                    We apply the inductive hypothesis to the smaller string
-                    $\geqs{x^\prime}{y^\prime}$
+                    Suppose $a > b$.
+                    By the induction hypothesis, we have a geq-string
+                    $\geqs{x}{y}$ with $a$ hyphens on the left and $b$ hyphens
+                    on the right.
+                    Then by inductive clause 2 we obtain a
+                    geq-string $\geqs{x-}{y-}$ with $a+1$ hyphens on the left
+                    and $b+1$ hyphens on the right.
             \end{description}
+
+            The idea of this proof is the following algorithm for constructing
+            the appropriate geq-string:
+            %
+            \begin{itemize}
+                \item
+                    Start with the base clause $\geqs{-}{-}$.
+                \item
+                    Apply inductive clause 1 $a-b$ times so that the difference
+                    between the numbers $a$ and $b$ is the same as the
+                    difference between the counts of hyphens.
+                \item
+                    Apply inductive clause 2 $b-1$ times to grow the hyphen
+                    counts to the correct numbers.
+            \end{itemize}
         \end{proof}
 \end{enumerate}
+
+\section{Functions}
+
+\begin{itemize}
+    \item
+        The relation $F_1$ is a total function from $A$ to $B$.
+        Furthermore, it is a bijection.
+    \item
+        The relation $F_2$ is a total function from $A$ to $B$.
+        It is neither injective nor surjective. It is the constant function
+        $x \mapsto b$.
+    \item
+        The relation $F_3$'s domain is not $A$, so it cannot be a function from
+        $A$ to $B$.
+    \item
+        The relation $F_4$ associates $b$ with two different values, so it is
+        not a function.
+    \item
+        The relation $F_5$'s domain is a proper subset of $A$, so it is not a
+        total function on $A$.
+\end{itemize}
+
+\section{Functions}
+
+\begin{prop}
+    The function $f : \N \to \N$ given by the mapping $x \mapsto x + 7$ is
+    injective.
+\end{prop}
+
+\begin{proof}
+    Suppose $f(a) = f(b)$. We want to show that $a = b$.
+    Expanding the definition of $f$, we get $a + 7 = b + 7$.
+    Subtracting both sides by seven, we conclude that $a = b$, as required.
+\end{proof}
+
+This function $f$ from the previous proposition is not surjective.
+To see this, observe that this is no natural number $a$ such that $a + 7 = 3$.
+Hence, the image of $f$ is a proper subset of $\N$.
+
+\section{Diagonalization}
+
+\begin{prop}
+    The set of all subsets of natural numbers is not denumerable.
+\end{prop}
+
+\begin{proof}
+    First, notice that a subset of $\N$ can be encoded as a function $\N \to 2$
+    sending a natural to $1$ if it is in the subset and to $0$ else.
+    Suppose that $\pset{\N}$ were countable.
+    Let $f : \N \to (\N \to 2)$ be the bijection witnessing that $\pset{\N}$ is
+    countable.
+
+    We construct a subset $s : \N \to 2$ as follows.
+    %
+    \begin{equation*}
+        n \mapsto 1 - f(n)(n)
+    \end{equation*}
+    %
+    In other words, the number $n$ is included in $s$ if and only if it is
+    \emph{not} included in the $n$\th subset identified by $f$.
+    Consequently, this subset $s$ is distinct from each subset identified by
+    $f$, meaning that it is not an element of $f$'s image.
+    Hence $f$ is not surjective, which contradicts the existence of $f$ as a
+    bijection.
+    Therefore, the powerset of $\N$ is not denumerable.
+\end{proof}
+
+\section{Cardinal numbers}
+
+Let $A$ be a countably infinite set.
+
+\begin{prop}
+    Suppose $a \notin A$.
+    Then, the set $A \union \setof{a}$ is countably infinite.
+\end{prop}
+
+\begin{proof}
+    Let $f : \N \to A$ be the bijection witnessing that $A$ is countable.
+    We construct a bijection $g : \N \to A \union \setof{a}$ as follows.
+    %
+    \begin{align*}
+        0 &\mapsto a \\
+        n &\mapsto f(n-1)
+    \end{align*}
+    %
+    It is easy to see that this function is a bijection.
+\end{proof}
+
+\begin{prop}
+    Suppose $B$ is a countably infinite set, and that
+    $A \intersn B = \emptyset$.
+    Then the set $A \union B$ is countably infinite.
+\end{prop}
+
+\begin{proof}
+    Let $f : \N \to A$ be the bijection witnessing that $A$ is countable.
+    Let $g : \N \to B$ be the bijection witnessing that $B$ is countable.
+    We construct a bijection $h : \N \to A \union B$ as follows.
+    %
+    \begin{equation*}
+        n \mapsto \begin{cases}
+            f(n/2) &\quad\text{if $n$ is even} \\
+            g((n-1)/2 &\quad\text{if $n$ is odd}
+        \end{cases}
+    \end{equation*}
+    %
+    It is easy to see that this function is a bijection.
+\end{proof}
 
 \end{document}
