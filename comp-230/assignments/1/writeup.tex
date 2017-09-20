@@ -60,7 +60,6 @@
     }
     \newcommand{\bool}{\mathtt{bool}}
     \newcommand{\nat}{\mathtt{nat}}
-    \newcommand{\hastype}{\operatorname{:}}
     %
     \item[Abstract syntax trees.]
         Generally speaking, we can formulate a recursive definition for
@@ -105,7 +104,7 @@
         \quad
         \infer{0 \hastype \nat}{}
         $$
-        
+gc
         The inductive clauses are as follows.
         %
         $$
@@ -130,41 +129,37 @@
         We can define the operation of an abstract machine for evaluating the
         expressions in this programming language. In particular we define a
         small-step semantics in the form of a relation
-        $\to \subset \terms \times \terms$.
+        $\evalto \subset \terms \times \terms$.
 
-        The base clause that values step to themselves, as there is nothing to
-        do. But what are values? An inductive definition would be necessary to
-        define them as $\true$, $\false$, $0$, and $\Succ v$ if $v$ is a value.
-        We will skip this definition since it's uninteresting and take for
-        granted that a set $V$ of values is defined. So we can now formulate
-        the essential base clause.
-        %
-        $$
-        \infer{v \to v}{v \in V}
-        $$
-        %
-        Note that this is a base clause \emph{even though} it is not an
-        \emph{axiom}: the premise does not rely on the relation $\to$ that we
-        are defining!
+        Before talking about \emph{evaluation}, we need to establish what it
+        means to be a \emph{value}, since that's when evaluation stops.gc
+        An inductive definition would be necessary to define values as $\true$,
+        $\false$, $0$, and $\Succ v$ if $v$ is a value.
+        We skip this definition since it's uninteresting and take for granted
+        that a set $V$ of values is defined.
 
-        There are additional base clauses that implement the built-in functions
+        The base clauses implement the built-in functions
         $+$, $\iszero$, and the conditional.
         %
         $$
-        \infer{0 + m \to m}{m \in V}
+        \infer{0 + m \evalto m}{m \in V}
         \quad
-        \infer{\Succ n + m \to \Succ (n + m)}{n, m \in V}
+        \infer{\Succ n + m \evalto \Succ (n + m)}{n, m \in V}
         \quad
-        \infer{\iszero 0 \to \true}{}
+        \infer{\iszero 0 \evalto \true}{}
         \quad
-        \infer{\iszero (\Succ n) \to \false}{n \in V}
+        \infer{\iszero (\Succ n) \evalto \false}{n \in V}
         $$
         %
         $$
-        \infer{\ifthenelse{\true}{s_1}{s_2} \to s_1}{s_1, s_2 \in V}
+        \infer{\ifthenelse{\true}{s_1}{s_2} \evalto s_1}{}
         \quad
-        \infer{\ifthenelse{\false}{s_1}{s_2} \to s_2}{s_1, s_2 \in V}
+        \infer{\ifthenelse{\false}{s_1}{s_2} \evalto s_2}{}
         $$
+        %
+        Note that these are all base clauses despite not being \emph{axioms}!
+        The premises, if any, do not involve the relation $\evalto$ that we are
+        defining.
 
         Finally, situations such as
         $$
@@ -182,18 +177,194 @@
         \infer{
             \ifthenelse{t}{s_1}{s_2}
             \to
-            \ifthenelse{t^\prime}{s_1^\prime}{s_2^\prime}
+            \ifthenelse{t^\prime}{s_1}{s_2}
         }{
             t \to t^\prime
-            &
-            s_1 \to s_1^\prime
-            &
-            s_2 \to s_2^\prime
         }
         $$
 
         As a final clause, we can say that the relation
         $\to \subseteq \terms \times \terms$ is exactly given by these rules.
 \end{description}
+
+\section{Mathematical induction}
+
+\begin{prop}
+    The sum of the doubles of the first $n$ natural numbers is $n(n+1)$, i.e.
+    %
+    \begin{equation*}
+        \sum_{i=1}^n 2i = n(n+1)
+    \end{equation*}
+\end{prop}
+
+\begin{proof}
+    By induction on $n$.
+    %
+    \begin{description}
+        \item[Base case] $n=1$.
+
+            Then $\sum_{i=1}^n 2i = 2 \cdot 1 = 1 (1 + 1)$ as required.
+
+        \item[Step case.]
+
+            Suppose that $\sum_{i=1}^k 2i = k(k+1)$.
+            We wish to show that $\sum_{i=1}^{k+1} 2i = (k+1)((k+1)+1)$.
+            Observe the following equalities.
+            %
+            \begin{align*}
+                \sum_{i=1}^{k+1} 2i
+                &= \sum_{i=1}^k 2i + 2(k+1) \\
+                &= k(k+1) + 2(k + 1) \tag{by IH} \\
+                &= (k+1)(k+2) \\
+                &= (k+1)((k+1)+1)
+            \end{align*}
+    \end{description}
+
+    Thus, we have shown by induction that $\sum_{i=1}^n 2i = n(n+1)$ for all
+    $n$.
+\end{proof}
+
+\section{Mathematical induction}
+%
+\newcommand{\geqs}[2]{#1 \operatorname{\mathtt{geq}} #2}
+
+\begin{enumerate}
+    \item
+        \begin{itemize}
+            \item
+                $\geqs{-}{-}$ is a valid geq-string.
+            \item
+                $\geqs{--}{--}$ is a valid geq-string.
+            \item
+                $\geqs{---}{--}$ is a valid geq-string.
+            \item
+                $\geqs{-}{--}$ is an invalid geq-string.
+            \item
+                $\geqs{-}{---}$ is an invalid geq-string.
+            \item
+                $\geqs{}{}$ is an invalid geq-string.
+        \end{itemize}
+
+    \item
+        We prove the following property of geq-strings.
+
+        \begin{prop}
+            If $s = \geqs{x}{y}$ is a valid geq-string, then the number of hyphens
+            in $x$ is greater than or equal to the number of hyphens in $y$.
+        \end{prop}
+
+        \begin{proof}
+            By structural induction on $s$.
+
+            \begin{description}
+                \item[Base case] $s = \geqs{-}{-}$.
+                    There is one hyphen on both sides, and one is greater than
+                    or equal to one.
+
+                \item[Step case 1.]
+                    Then $s$ is obtained by inductive clause 1.
+                    Thus we discover that $x = y$ and that $x = x^\prime -$.
+                    We apply the induction hypothesis to the smaller string
+                    $\geqs{x^\prime}{x^\prime}$ to deduce that the number of
+                    hyphens in $x^\prime$ is greater than or equal to the
+                    number of hyphens in $x^\prime$.
+                    Adding one more hyphen to both sides preserves this
+                    inequality.
+                    This establishes that $s = \geqs{x^\prime -}{x^\prime -}$
+                    has at least as many hyphens on the left as on the right.
+
+                \item[Step case 2.]
+                    Then $s$ is obtained by inductive clause 2.
+                    Hence, it is of the form $\geqs{x^\prime -}{y}$.
+                    We apply the inductive hypothesis to the smaller string
+                    $\geqs{x^\prime}{y}$ to deduce that the number of hyphens
+                    in $x^\prime$ is greater than or equal to the number of
+                    hyphens in $y$.
+                    Adding an additional hyphen on the left preserves this
+                    ordering.
+                    Hence $s = \geqs{x^\prime -}{y}$ has at least as many
+                    hyphens on the left as on the right.
+            \end{description}
+
+            This establishes that for any well-formed geq-string, the number of
+            hyphens on the left is greater than or equal to the number of
+            hyphens on the right.
+        \end{proof}
+
+    \item (Reflexivity.)
+
+        \begin{prop}
+            For any natural number $a$, the geq-string formed with $a$ hyphens
+            on the left and on the right is well-formed.
+        \end{prop}
+
+        \begin{proof}
+            By induction on $a$.
+
+            \begin{description}
+                \item[Base case] $a = 1$.
+                    Then we construct a well-formed geq-string with one hyphen
+                    on both sides using the base clause: $\geqs{-}{-}$.
+
+                \item[Step case.]
+                    Suppose we have a geq-string $s = \geqs{x}{y}$ with $k$
+                    hyphens on the left and on the right.
+                    Then $x$ and $y$ are the same string, so we deduce $x = y$.
+                    We apply inductive clause 1 to obtain the geq-string
+                    $s^\prime = \geqs{x -}{x -}$ having $k+1$ hyphens on both
+                    sides.
+            \end{description}
+
+            This establishes that for any choice of $a$, we can construct a
+            geq-string having $a$ hyphens on both sides. Intuitively, this is
+            done by applying inductive clause 1 $a-1$ times to the base clause.
+        \end{proof}
+
+    \item (Sort of completeness.)
+
+        \begin{prop}
+            For any natural numbers $a$ and $b$, if $a > b$, then the
+            geq-string consisting of $a$ hyphens on the left and $b$ hyphens on
+            the right is well-formed.
+        \end{prop}
+
+        \begin{proof}
+            By induction on $b$.
+
+            \begin{description}
+                \item[Base case] $b = 1$.
+                    We construct a well-formed geq-string for this case by
+                    induction on $a$.
+
+                    \begin{description}
+                        \item[Base case] $a = 2$.
+                            We apply inductive clause 2 one time to the base
+                            clause to arrive at the geq-string $\geqs{--}{-}$.
+
+                        \item[Step case.]
+                            Suppose we have the well-formed geq-string
+                            $\geqs{x}{-}$ with $a$ hyphens on the left and one
+                            hyphen on the right.
+                            We can obtain a well-formed geq-string with $a+1$
+                            hyphens on the left by applying inductive clause 2.
+                            In particular, we get $\geqs{x-}{-}$.
+                    \end{description}
+
+                \item[Step case.]
+                    Suppose $a > b$.gc
+                    We have $b > 0$ and we want to show that if $a > b$ then we
+                    can obtain a geq-string with $a$ hyphens on the left and
+                    $b$ hyphens on the right.
+
+                    Suppose $a > b$. Since $b > 0$,gc
+                    $s = \geqs{x}{y}$
+                    with $a$ hyphens on the left and $b$ hyphens on the right.
+                    Since $a > b$ and $b > 0$, the form of the string that we
+                    have is in fact $s = \geqs{x^\prime -}{y^\prime -}$.
+                    We apply the inductive hypothesis to the smaller string
+                    $\geqs{x^\prime}{y^\prime}$
+            \end{description}
+        \end{proof}
+\end{enumerate}
 
 \end{document}
