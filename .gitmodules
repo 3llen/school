@@ -1,6 +1,6 @@
 [submodule "comp-520/project"]
 	path = comp-520/project
-	url = git@github.com:tsani/comp-520-project.git
+	url = git@github.com:tsani/goto.git
 [submodule "comp-520/peephole"]
 	path = comp-520/peephole
 	url = git@github.com:tsani/peephole.git
