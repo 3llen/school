@@ -1,0 +1,82 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[margin=2.0cm]{geometry}
+
+\author{Jacob Thomas Errington}
+\title{Motivation}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+Software is ubiquitous in our world. More and more aspects of our lives are
+governed by software products, and the potential for software to misbehave is a
+concern that never ceases to grow.
+For instance, the false alarms in the NORAD defense system in 1980 could have
+resulted in major worldwide catastrophe.
+So I frequently ask myself: how can we be \emph{sure} that software does
+\emph{what it is supposed to do?}
+This question is what drives my interest in programming languages research.
+
+I first discovered functional programming as a teenager, as I acquainted myself
+with the Haskell programming language.
+It took a number of tries before the concepts finally clicked for me, as at
+that time I had comparatively little programming experience and considerably
+less mathematical maturity.
+Since then, I enjoyed exploring the numerous language extensions that exist in
+the GHC compiler.
+Some of these give a semblance of dependent types to Haskell, which planted in
+my mind a fascination with dependent types and correct-by-construction
+programs.
+
+In winter 2016, that fascination solidified itself as I took a course titled
+``logic and computation'' by Professor Brigitte Pientka.
+I gained considerable insight into the theory of programming languages thanks
+to this course: we discussed the Curry-Howard correspondence for first-order
+logic in quite some detail.
+I have fond memories of visiting Prof.~Pientka in her office after class to
+chat further about the different proofs we covered.
+%
+%I took a course on compiler design. It was this project that
+%concretized my appreciation for strong type systems: we had many static
+%guarantees about our compiler thanks to our syntax tree representation. In
+%other words, many invariants about our code turned out to be expressible in the
+%types. Consequently, these invariants were verified for us by GHC.
+
+I find Prof.~Pientka's research very inspiring. In contrast with many
+programming language researchers who ``throw stuff at the wall to see what
+sticks,'' Prof.~Pientka arrives at novel programming language concepts by
+building them from the ground up, ensuring that the theory is present to back
+up these new ideas from the get-go.
+For example, although it has been possible to define coinductive data types for
+quite some time in advanced languages such as Coq and Agda, it was the work of
+David Thibodeau and Andrew Cave under Prof.~Pientka that solidified an
+understanding of coinductive definitions in terms of copattern matching, a
+novel concept\footnotemark.
+%
+\footnotetext{citation for Indexed Codata Types at ICFP}%
+
+This term, in fall 2017, I am working under the supervision Prof.~Pientka in
+the context of an independent studies course to bridge this work on copatterns
+and indexed codata types with earlier work on fair reactive
+programming\footnotemark.
+The goal of this project is to design a simply-typed core calculus supporting
+both codata types and temporal modalities obtained as least and greatest fixed
+points.
+This work would naturally lend itself to be extended to indexed types or even
+full dependent types. Prof.~Pientka and I believe that such an extension would
+make for an excellent topic for a masters thesis.
+%
+\footnotetext{citation for FRP paper at POPL}%
+
+My main research interest is in the design of programming languages.
+Specifically, how can we create programming languages in which it is easy to
+write code that is at once understandable and correct?
+Second, I am interested in compilers and runtimes for functional languages.
+Simon Peyton Jones showed in 1992 how lazy functional languages could be
+efficiently implemented on stock hardware. However, the compilation story for
+dependently-typed programming languages remains still to this day very
+mysterious.
+
+\end{document}
