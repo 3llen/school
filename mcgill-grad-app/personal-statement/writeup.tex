@@ -1,0 +1,82 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[margin=2.0cm]{geometry}
+
+\author{Jacob Thomas Errington}
+\title{Motivation}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+Software is ubiquitous in our world. More and more aspects of our lives are
+governed by software products, and the potential for software to misbehave is a
+concern that never ceases to grow.
+For instance, the false alarms in the NORAD defense system in 1980 could have
+resulted in major worldwide catastrophe.
+So I frequently ask myself: how can we be \emph{sure} that software does
+\emph{what it is supposed to do?}
+This question is what drives my interest in programming languages research.
+
+I first discovered functional programming as a teenager, as I acquainted myself
+with the Haskell programming language.
+Since then, I enjoyed exploring the numerous language extensions that exist in
+the GHC compiler:
+some give a semblance of dependent types to Haskell, which planted in
+my mind a fascination for programs that are correct by construction.
+Broadly speaking, a dependently-typed programming language enables the
+programmer to express \emph{in types} arbitrary constraints on the
+\emph{values} handled by the program at runtime.
+Proofs that these constraints are satisfied are included by the programmer
+in their code, and these proofs are checked by the compiler.
+
+In winter 2016, that fascination solidified itself as I took a course titled
+``logic and computation'' by Prof.~Brigitte Pientka.
+I gained considerable insight into the theory of programming languages thanks
+to this course: we discussed the Curry-Howard correspondence for first-order
+logic, which informs the theoretical underpinnings of dependently-typed
+programming.
+%
+In that same term, I took a course on compiler design. My teammate and I
+implemented our compiler in Haskell, and used a simplified version of the ideas
+in \textit{Generic programming with fixed points for mutually recursive
+datatypes} by Alexey Rodriguez et al.
+This afforded us a general way to include annotations on the syntax tree of the
+program to compile: our types reflected precisely how the syntax tree became
+further augmented with new annotations as subsequent phases of compilation were
+performed.
+%
+For outstanding achievement in this course, Prof.~Laurie Hendren emailed me to
+award me with an ``honorary A+'' grade, as McGill does not have an official A+
+grade.
+
+This term, I am working under the supervision of Prof.~Pientka in an
+independent studies course to combine earlier work on codata types, which give
+rise to a type system capable of reasoning about infinite structures such as
+streams or program traces, and functional reactive programming, which 
+
+
+
+
+and indexed codata types with earlier work on fair reactive
+programming\footnotemark.
+The goal of this project is to design a simply-typed core calculus supporting
+both codata types and temporal modalities obtained as least and greatest fixed
+points.
+This work would naturally lend itself to be extended to indexed types or even
+full dependent types. Prof.~Pientka and I believe that such an extension would
+make for an excellent topic for a masters thesis.
+%
+\footnotetext{citation for FRP paper at POPL}%
+
+My main research interest is in the design of programming languages.
+Specifically, how can we create programming languages in which it is easy to
+write code that is at once understandable and correct?
+Second, I am interested in compilers and runtimes for functional languages.
+Simon Peyton Jones showed in 1992 how lazy functional languages could be
+efficiently implemented on stock hardware. However, the compilation story for
+dependently-typed programming languages remains still to this day very
+mysterious.
+
+\end{document}
