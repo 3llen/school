@@ -5,6 +5,11 @@
 \date{Monday, 2 October 2017}
 
 \usepackage[geometry]{jakemath}
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\footnotesize\ttfamily,
+}
 
 \begin{document}
 
@@ -163,7 +168,99 @@
         so the absolute error on $z$ is $\Delta z = 2 z \Delta x$, which is
         acceptable since $z \approx 0$.
     \end{enumerate}
+
+  \item
+    \emph{%
+      Compute the root of $f(x) = \sqrt{x} - e^{-x}$ using the secant method
+      and the Newton-Raphson method.%
+    }
+
+    See appendix \ref{app:q3-results}.
+
+  \item
+    \emph{%
+      Discuss the behaviour of the fixed point iteration schemes
+      $x_{n+1} = e^{-2x_n}$ and
+      $x_{n+1} = \frac{1}{2} \ln x_n$.
+    }
+
+    For the data, see appendix \ref{app:q4}.
+
+    The exponential scheme appears to converge to the root identified by both
+    the secant and Newton-Raphson methods, although considerably more slowly.
+    The logarithmic scheme diverges.
+
+    Consider a general iterative scheme $x_{n+1} = \phi(x_n)$.
+    We are looking for a fixed point $x^* = \phi(x^*)$.
+    Define the error of the $n$\th{} step by $\epsilon_n = x_n - x^*$.
+    The Mean Value Theorem tells us that there exists some $c_n$ in the
+    interval between $x^*$ and $x^n$ such that
+    %
+    \begin{equation*}
+      \phi^\prime(c_n)
+      = \frac{\phi(x_n) - \phi(x^*)}{x_n - x^*}
+      = \frac{x_{n+1} - x^*}{x_n - x^*}
+      = \frac{\epsilon_{n+1}}{\epsilon_n}
+    \end{equation*}
+    %
+    so $\epsilon_{n+1} = \phi^\prime(c_n) \epsilon_n$.
+
+    What this means for us that if the derivative of our iteration scheme is
+    less than $1$ everywhere in our search interval, the errors on successive
+    iterations keep getting smaller. Otherwise, they get larger.
+    So it suffices to look at the derivatives of the iteration schemes we have
+    to understand why one converges and why one diverges.
+
+    First consider $\phi(x) = e^{-2x}$.
+    Its derivative is $\phi^\prime(x) = -2 * e^{-2x}$.
+    Since we are considering a search interval in the positive reals, then
+    indeed this derivative is at most $1$ pretty much everywhere for $x > 0$.
+    There's a slight caveat: the derivative does go above $1$ for
+    $x \in [0, x_0]$ for some $x_0$ between $0.3$ and $0.4$.
+    However, our root is above $0.4$, so we shouldn't ever stray into that
+    region of the search space.
+    Even so, this scheme appears to converge for an initial guess of $0.25$.
+
+    Next we consider the logarithmic scheme
+    $\phi(x) = \frac{1}{2} \ln x$.
+    Its derivative is $\phi^\prime(x) = \frac{1}{2x}$.
+    This derivative is greater than $1$ at the root, so in essence we get
+    ``pushed away'' from the root rather than pulled towards it when we iterate
+    this function.
 \end{enumerate}
 
+\appendix
+
+\section{Source code}
+
+What follows is the Haskell program used to compute the results.
+
+\lstinputlisting[language=Haskell]{code/a1.hs}
+
+\section{Results for question 3}
+\label{app:q3-results}
+
+\subsection{With the secant method}
+
+\lstinputlisting{code/secant-results.txt}
+
+\subsection{With the Newton-Raphson method}
+
+\lstinputlisting{code/nr-results.txt}
+
+\section{Results for question 4}
+\label{app:q4}
+
+\subsection{Exponential fixed point}
+
+We use the fixed point scheme $x_{n+1} = e^{-2x_n}$.
+
+\lstinputlisting{code/fix1-results.txt}
+
+\subsection{Logarithmic fixed point}
+
+We use the fixed point scheme $x_{n+1} = \frac{1}{2} \ln x_n$.
+
+\lstinputlisting{code/fix2-results.txt}
 
 \end{document}
