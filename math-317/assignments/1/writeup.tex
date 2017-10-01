@@ -1,0 +1,169 @@
+\documentclass[11pt,letterpaper]{article}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#1\\Numerical analysis -- MATH 317}
+\date{Monday, 2 October 2017}
+
+\usepackage[geometry]{jakemath}
+
+\begin{document}
+
+\maketitle
+
+\begin{enumerate}
+  \item
+    \begin{enumerate}
+      \item
+        \emph{How accurately do we need to know $\pi$ in order to compute
+        $\sqrt{\pi}$ to four decimal places?}
+
+        Generally, if we have a function $f : \R \to \R$ and we want to compute
+        the error of $z = f(x)$ given the error $\Delta x$, we use a
+        derivative.
+        %
+        \begin{equation*}
+          \Delta z = \Delta x \cdot \deriv{x} f(x)
+        \end{equation*}
+
+        Taking $f(x) = \sqrt{x}$, we have
+        %
+        \begin{equation*}
+          \Delta z
+          = \Delta x \parens{\frac{1}{2} \cdot \frac{1}{\sqrt{x}}}
+        \end{equation*}
+
+        In this problem, we know that $\Delta z \leq 0.00001$, i.e. that we
+        want no error in the first four decimal places.
+        %
+        We substitute and solve to find
+        %
+        \begin{equation*}
+          \Delta x \leq 2 \sqrt{\pi} \cdot 0.00001 \approx 0.000035
+        \end{equation*}
+
+      \item
+        \emph{Convert the binary number $11.101101$ to base $10$.}
+
+        \begin{equation*}
+          (11.101101)_2
+          = 2^1 + 2^0 + 2^{-1} + 2^{-3} + 2^{-4} + 2^{-6}
+          = \frac{237}{64}
+          = 3.703125
+        \end{equation*}
+    \end{enumerate}
+
+  \item
+    \begin{enumerate}
+      \item
+        \emph{%
+          Suppose we want to compute $z = e^x - e^{-x}$ in a small
+          neighbourhood of $x$ near zero. What is the most accurate way to do
+          this?%
+        }
+
+        If we just compute as written, we will have a catastophic cancellation:
+        the result will be very close to zero, but the absolute errors on both
+        summands will add to produce an error much larger than the result!
+
+        Instead, we can replace the summing of absolute errors with a sum
+        of relative errors by multiplying up and down by $e^x$ as follows.
+        %
+        \begin{equation*}
+          z = \frac{e^{2x} - 1}{e^x}
+        \end{equation*}
+
+        Let $\Delta x$ be the error on $x$.
+        Then the absolute error on $e^x$ is $e^x \Delta x$.
+        So the relative error on $e^x$ is
+        %
+        \begin{equation*}
+          \frac{e^x \Delta x)}{e^x} = \Delta x
+        \end{equation*}
+        %
+        Next, the absolute error on $e^{-2x}$ is $2 e^{-2x} \Delta x$,
+        and the relative error is hence $2 \Delta x$.
+
+        The relative error on $z$ computed by the division is therefor
+        $3 \Delta x$, as we add the relative errors of the divisor and
+        dividend.
+        Hence, for the absolute error on $z$, we have $\Delta z = 3 z \Delta
+        x$. Since $z \approx 0$, this gives an acceptable error on $z$.
+
+      \item
+        \emph{%
+          How about $z = \bracks{\sqrt{1 + x^2} - \sqrt{1 - x^2}}^{-1}$?%
+        }
+
+        We multiply by the conjugate to obtain
+        %
+        \begin{align*}
+          \frac{1}{\sqrt{1 + x^2} - \sqrt{1 - x^2}}
+          \cdot
+          \frac{\sqrt{1 + x^2} + \sqrt{1 - x^2}}{
+            \sqrt{1 + x^2} + \sqrt{1 - x^2}%
+          }
+          = \frac{\sqrt{1+x^2} + \sqrt{1 - x^2}}{2x^2}
+        \end{align*}
+
+        For the denominator, the relative error is $2 \frac{\Delta x}{x}$, i.e.
+        twice the relative error of $x$.
+
+        For the numerator, we compute the absolute error using a derivative.
+        Let $y = \sqrt{1 + x^2} + \sqrt{1 - x^2}$.
+        %
+        \begin{align*}
+          \Delta y
+          &= \deriv[y]{x} \Delta x \\
+          &=
+          \parens{\frac{x}{\sqrt{1 + x^2}} - \frac{x}{\sqrt{1 - x^2}}}
+          \Delta x
+        \end{align*}
+
+        We compute the relative error by dividing by $y$.
+        %
+        \begin{align*}
+          \frac{\Delta y}{y}
+          &= \frac{
+            \parens{\frac{x}{\sqrt{1 + x^2}} - \frac{x}{\sqrt{1 - x^2}}}
+          }{
+            \sqrt{1 + x^2} + \sqrt{1 - x^2}
+          }
+          \Delta x
+        \end{align*}
+
+        Let's think about this relative error for a moment, keeping in mind
+        that $x \approx 0$:
+        the denominator is approximately $2$ and numerator is approximately
+        zero.
+        So the relative error is itself approximately zero here.
+
+        Finally, we compute relative error on $z$ as the sum of the relative
+        error of the divisor and of the dividend.
+        %
+        \begin{equation*}
+          \frac{\Delta z}{z}
+          =
+          2 \Delta x
+          +
+          \frac{
+            \parens{\frac{x}{\sqrt{1 + x^2}} - \frac{x}{\sqrt{1 - x^2}}}
+          }{
+            \sqrt{1 + x^2} + \sqrt{1 - x^2}
+          }
+          \Delta x
+        \end{equation*}
+        %
+        but the second term is vanishing, so we can approximate to say
+        %
+        \begin{equation*}
+          \frac{\Delta z}{z}
+          \approx 2\Delta x
+        \end{equation*}
+        %
+        so the absolute error on $z$ is $\Delta z = 2 z \Delta x$, which is
+        acceptable since $z \approx 0$.
+    \end{enumerate}
+\end{enumerate}
+
+
+\end{document}
