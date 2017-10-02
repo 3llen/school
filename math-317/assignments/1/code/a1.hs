@@ -90,6 +90,7 @@ secantResults =
   , f 2 4
   ]
 
+myGuesses :: [Double]
 myGuesses = [0, 0.25, 0.5, 0.75, 1, 2, 5]
 
 -- | The results of the Newton-Raphson method, for a bunch of guesses.
@@ -116,6 +117,21 @@ fix2results =
   let f x0 = (x0, analyze 15 objective (iterate fix2 x0)) in
   map f myGuesses
 
+-- | For problem 5.
+fixl
+  :: Double -- ^ parameter lambda
+  -> Double
+  -> Double
+fixl l x = n / d where
+  n = l * x + 1 - sin x
+  d = 1 + l
+
+fixlresults :: Double -> [(Double, Coordinates)]
+fixlresults l =
+  let g x = 1 - x - sin x
+      f x0 = (x0, analyze 30 g (iterate (fixl l) x0))
+      in map f myGuesses
+
 -- | Print out the results to files.
 main :: IO ()
 main = do
@@ -126,6 +142,7 @@ main = do
     [ ("nr-results.txt", nrResults)
     , ("fix1-results.txt", fix1results)
     , ("fix2-results.txt", fix2results)
+    , ("fixl-results.txt", fixlresults 1)
     ]
 
 results2file :: Show a => String -> [(a, Coordinates)] -> IO ()

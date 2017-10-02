@@ -227,6 +227,48 @@
     This derivative is greater than $1$ at the root, so in essence we get
     ``pushed away'' from the root rather than pulled towards it when we iterate
     this function.
+
+  \item
+    Consider the fixed point iteration scheme
+    %
+    \begin{equation*}
+      \phi(x) = \frac{\lambda x + 1 - \sin x}{1 + \lambda}
+    \end{equation*}
+    %
+    We wish to choose $\lambda$ so that this scheme converges as fast as
+    possible to the root of the equation $1 - x - \sin x = 0$.
+
+    From the analysis we did in the previous problem involving the Mean Value
+    Theorem, we know that the error of the next guess depends on the magnitude
+    of the derivative at the current guess. So we want to make this magnitude
+    as close to zero as possible.
+
+    First, we compute the derivative.
+    %
+    \begin{equation*}
+      \phi^\prime(x) = \frac{\lambda - \cos x}{1 + \lambda}
+    \end{equation*}
+
+    In general, the numerator will be at most $1 + \lambda$ and at least
+    $\lambda - 1$.
+
+    Let's look at some cases.
+    If we take $\lambda = 0$,
+    then $\phi^\prime(x)$ oscillates between $-1$ and $1$.
+    If we take $\lambda = 1$,
+    then $\phi^\prime(x)$ oscillates between $0$ and $1$.
+    If we take $\lambda = 2$,
+    then $\phi^\prime(x)$ oscillates between $\frac{2}{3}$ and $1$.
+
+    For even greater values of $\lambda$, the minimum moves further away from
+    zero, which is undesirable.
+
+    I think that choosing $\lambda = 1$ will give the fastest convergence: the
+    cosine function spends a lot of its time near its extrema and relatively
+    quickly passes from $-1$ to $1$.
+
+    From the numerical data in appendix \ref{app:q5}, the root is at
+    $x = 0.510973$.
 \end{enumerate}
 
 \appendix
@@ -262,5 +304,14 @@ We use the fixed point scheme $x_{n+1} = e^{-2x_n}$.
 We use the fixed point scheme $x_{n+1} = \frac{1}{2} \ln x_n$.
 
 \lstinputlisting{code/fix2-results.txt}
+
+\section{Results for question 5}
+
+We use the fixed point scheme
+\begin{equation*}
+  x_{n+1} = \frac{\lambda x_n + 1 - \sin {x_n}}{1 + \lambda}
+\end{equation*}
+
+\lstinputlisting{code/fixl-results.txt}
 
 \end{document}
