@@ -3,7 +3,7 @@
 \usepackage[margin=2.0cm]{geometry}
 
 \author{Jacob Thomas Errington}
-\title{Motivation}
+\title{\vspace{-2em}Motivation}
 \date{}
 
 \begin{document}
@@ -15,68 +15,114 @@ governed by software products, and the potential for software to misbehave is a
 concern that never ceases to grow.
 For instance, the false alarms in the NORAD defense system in 1980 could have
 resulted in major worldwide catastrophe.
-So I frequently ask myself: how can we be \emph{sure} that software does
-\emph{what it is supposed to do?}
+How can we be \emph{sure} that software does \emph{what it is supposed to do?}
 This question is what drives my interest in programming languages research.
 
-I first discovered functional programming as a teenager, as I acquainted myself
-with the Haskell programming language.
-It took a number of tries before the concepts finally clicked for me, as at
-that time I had comparatively little programming experience and considerably
-less mathematical maturity.
-Since then, I enjoyed exploring the numerous language extensions that exist in
-the GHC compiler.
-Some of these give a semblance of dependent types to Haskell, which planted in
-my mind a fascination with dependent types and correct-by-construction
-programs.
+I wish to pursue graduate studies in programming languages research as it
+combines the theoretical and the practical.
+On the one hand, such research pushes the limits of logic: linear temporal
+logic (LTL), for example, was introduced precisely for its applications to
+formal verification.
+On the other hand, the languages that we design need to be actually
+\emph{usable} by software engineers, who are often not logicians!
+As we want to prove more complex properties about our software, the proofs
+become accordinaly more difficult to write by hand.
+That is why ancillary tooling such as editor support is also essential to the
+more widespread adoption of newer, more advanced languages.
 
-In winter 2016, that fascination solidified itself as I took a course titled
-``logic and computation'' by Professor Brigitte Pientka.
-I gained considerable insight into the theory of programming languages thanks
-to this course: we discussed the Curry-Howard correspondence for first-order
-logic in quite some detail.
-I have fond memories of visiting Prof.~Pientka in her office after class to
-chat further about the different proofs we covered.
+This area of research is therefore well suited to someone like me: I enjoy
+both solving abstract mathematical problems and implementing concrete software
+products.
+I have achieved excellent grades in numerous theoretical courses on logic, set
+theory, discrete mathematics, and computability theory while also accruing work
+experience as a software engineer.
+
+This term, I am working under the supervision of Prof.~Brigitte Pientka, who
+has agreed to be my masters advisor in the coming term, on an independent
+studies project. My work will build on two previous developments in
+Prof.~Pientka's lab.
+First, David Thibodeau developed a new understanding of programming infinite
+structures using a novel construct called \emph{copattern matching}: rather
+than define an infinite value using \emph{constructors}, we instead define it
+using \emph{eliminators}\footnotemark.
 %
-%I took a course on compiler design. It was this project that
-%concretized my appreciation for strong type systems: we had many static
-%guarantees about our compiler thanks to our syntax tree representation. In
-%other words, many invariants about our code turned out to be expressible in the
-%types. Consequently, these invariants were verified for us by GHC.
-
-I find Prof.~Pientka's research very inspiring. In contrast with many
-programming language researchers who ``throw stuff at the wall to see what
-sticks,'' Prof.~Pientka arrives at novel programming language concepts by
-building them from the ground up, ensuring that the theory is present to back
-up these new ideas from the get-go.
-For example, although it has been possible to define coinductive data types for
-quite some time in advanced languages such as Coq and Agda, it was the work of
-David Thibodeau and Andrew Cave under Prof.~Pientka that solidified an
-understanding of coinductive definitions in terms of copattern matching, a
-novel concept\footnotemark.
+\footnotetext{%
+  David Thibodeau, Andrew Cave, Brigitte Pientka. \emph{Indexed Codata Types},
+  International Conference on Functional Programming (ICFP'16)%
+}%
 %
-\footnotetext{citation for Indexed Codata Types at ICFP}%
-
-This term, in fall 2017, I am working under the supervision Prof.~Pientka in
-the context of an independent studies course to bridge this work on copatterns
-and indexed codata types with earlier work on fair reactive
-programming\footnotemark.
-The goal of this project is to design a simply-typed core calculus supporting
-both codata types and temporal modalities obtained as least and greatest fixed
-points.
-This work would naturally lend itself to be extended to indexed types or even
-full dependent types. Prof.~Pientka and I believe that such an extension would
-make for an excellent topic for a masters thesis.
+Having a sound foundation for infinite structures is essential in a world where
+distributed computing is on the rise: the requests received by a server
+application can be modelled by an infinite stream.
 %
-\footnotetext{citation for FRP paper at POPL}%
+Second, Andrew Cave and Francisco Ferreira developed a sound proof system for
+LTL\footnotemark.
+This system doubles as a programming language with first-class support for
+reasoning about time.
+The language ensures by its typing rules that programs are \emph{causal}: the
+output at the current time step is independent of the results of future
+computations.
+%
+\footnotetext{%
+  Andrew Cave, Francisco Ferreira, Prakash Panangaden, and Brigitte Pientka.
+  \emph{Fair reactive programming},
+  41th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages
+  (POPL'14), pages 361-372, ACM, 2014.%
+}%
+%
+As for my work this term, I seek to combine these two developments.
 
-My main research interest is in the design of programming languages.
-Specifically, how can we create programming languages in which it is easy to
-write code that is at once understandable and correct?
-Second, I am interested in compilers and runtimes for functional languages.
-Simon Peyton Jones showed in 1992 how lazy functional languages could be
-efficiently implemented on stock hardware. However, the compilation story for
-dependently-typed programming languages remains still to this day very
-mysterious.
+Concretely, I will apply Thibodeau's copattern matching to the work of Cave and
+Ferreira and augment their type system with indexed types.
+This will give rise to an indexed functional reactive programming language.
+If we take the natural numbers as an index domain, then this language can be
+used to express and prove stronger fairness properties than previously
+possible. In the language of Cave and Ferreira, it is possible to express the
+type of a fair scheduler, which ensures that two input streams are served
+infinitely often, whereas with the addition of indices, it becomes possible to
+prove tight bounds on how long each stream will have to wait before being
+served.
 
+I wish to pursue my studies at McGill under the supervision of Prof.~Pientka.
+She has unparallelled insights in the world of dependent types, with
+publications in conferences such as ICFP and POPL, and having designed multiple
+languages similar to the one I intend to develop. After all, she supervised the
+two projects my work will be built on top of; her advice will be
+invaluable in the development of my own project.
+
+% I find Prof.~Pientka's research very inspiring. In contrast with many
+% programming language researchers who ``throw stuff at the wall to see what
+% sticks,'' Prof.~Pientka arrives at novel programming language concepts by
+% building them from the ground up, ensuring that the theory is present to back
+% up these new ideas from the get-go.
+% For example, although it has been possible to define coinductive data types for
+% quite some time in advanced languages such as Coq and Agda, it was the work of
+% David Thibodeau and Andrew Cave under Prof.~Pientka that solidified an
+% understanding of coinductive definitions in terms of copattern matching, a
+% novel concept\footnotemark.
+% %
+% \footnotetext{citation for Indexed Codata Types at ICFP}%
+% 
+% This term, in fall 2017, I am working under the supervision Prof.~Pientka in
+% the context of an independent studies course to bridge this work on copatterns
+% and indexed codata types with earlier work on fair reactive
+% programming\footnotemark.
+% The goal of this project is to design a simply-typed core calculus supporting
+% both codata types and temporal modalities obtained as least and greatest fixed
+% points.
+% This work would naturally lend itself to be extended to indexed types or even
+% full dependent types. Prof.~Pientka and I believe that such an extension would
+% make for an excellent topic for a masters thesis.
+% %
+% \footnotetext{citation for FRP paper at POPL}%
+% 
+% My main research interest is in the design of programming languages.
+% Specifically, how can we create programming languages in which it is easy to
+% write code that is at once understandable and correct?
+% Second, I am interested in compilers and runtimes for functional languages.
+% Simon Peyton Jones showed in 1992 how lazy functional languages could be
+% efficiently implemented on stock hardware. However, the compilation story for
+% dependently-typed programming languages remains still to this day very
+% mysterious.
+% 
 \end{document}
