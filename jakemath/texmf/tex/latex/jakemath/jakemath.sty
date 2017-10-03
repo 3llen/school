@@ -41,6 +41,22 @@
 
 %%%%%%%%%% MAIN LIBRARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%% FONTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Quadrata font
+\newcommand{\qdfont}{pnc}
+\newcommand{\textqd}[1]{%
+  {%
+    \fontfamily{\qdfont}\selectfont#1%
+  }%
+}
+\newcommand{\mathqd}[1]{%
+  {%
+    \text{\fontfamily{\qdfont}\selectfont#1}%
+  }%
+}
+
+
 %%%%% TIKZ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Import common tikzlibraries to be sure.
@@ -212,6 +228,7 @@
 % Type/proof theory
 \newcommand{\evalto}{\longrightarrow}
 \newcommand{\hastype}{\operatorname{:}}
+\newcommand{\rewrite}{\longrightarrow}
 
 % Sets of numbers
 \newcommand{\unit}{[0,1]}
