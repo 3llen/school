@@ -1,0 +1,76 @@
+\documentclass[11pt,letterpaper]{article}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#2\\Logic and computability -- COMP 230}
+\date{Thursday, 5 October 2017}
+
+\usepackage[geometry]{jakemath}
+
+\begin{document}
+
+\maketitle
+
+\section{Cardinal arithmetic}
+
+\begin{prop}
+  Suppose $(B_n)_{n\in\N}$ is a countable sequence of pairwise disjoint
+  countable sets.
+  Then, the union of the sequence is also countable.
+\end{prop}
+
+\begin{proof}
+  We will construct an injection $g : B = \Union_{n\in\N} B_n \to \N$.
+  Take arbitrary $a \in B$.
+  Then it belongs to $B_i$ for exactly one $i \in \N$.
+  Let $f_i : B_i \to \N$ be the bijection witnessing that $B_i$ is countable.
+  Let $m = f_i(a)$.
+  We define $g(a) = \pi_i^m$ where $\pi_i$ is the $i$\th{} prime number.
+  (So $\pi_0 = 2$, $\pi_1$ = 3, and so on.)
+
+  Now we claim that $g$ is injective.
+  To see this, take arbitrary $g(a), g(b) \in g(B)$.
+  Suppose $g(a) = g(b)$.
+  We want to show that $a = b$.
+  Note $g(a) = \pi_i^m$ for some $i$ and some $m$,
+  and $g(b) = \pi_j^n$ for some $j$ and some $n$.
+  \begin{description}
+    \item[Case] $i \neq j$.
+      Then we have reached a contradiction, by the definition of primality.
+      Specifically, $\pi_i^x \neq \pi_j^y$ for any $i \neq j$ and $x, y > 0$.
+      So this case is impossible.
+
+    \item[Case] $i = j$.
+      Then we have $\pi_i^m = \pi_i^n$.
+      By the injectivity of the exponentiation, we deduce that $m = n$.
+      Note that $m = f_i(a)$ and $m = n = f_i(b)$.
+      So $f_i(a) = f_i(b)$.
+      But $f_i$ is a bijection, so it is in particular injective.
+      We deduce that $a = b$, as required.
+  \end{description}
+
+  Since there exists an injection from $B \to \N$,
+  we have by definition that $|B| \leq |\N|$.
+  However, $B$ must be infinite, as $B_0 \subset B$ and $B_0$ is countable,
+  so $|\N| = |B_0| \leq |B| \leq |\N|$.
+  We deduce that $|B| = |\N|$.
+\end{proof}
+
+\begin{rem}
+  Suppose $A$ is a countably infinite set and $D \subseteq A$ is also
+  countably infinite.
+  Then we can't say much about the cardinality of $S = A \setminus D$.
+  Of course, $|S| \leq |A|$; removing elements can't make the set bigger.
+  However, take for example $A = \N$. If $D = \setof{\text{even numbers}}$,
+  then $S$ is the odd numbers and is also infinite;
+  but if $D = \setof{n \in \N | n > 1}$,
+  then $S = \setof{0, 1}$ is finite.
+\end{rem}
+
+\section{Formal systems}
+
+\newcommand{\vsys}{\mathbf{V}}
+
+We define a first formal system $\vsys$, with a single axiom \textqd{P},
+and a single inference rule $x \rewrite x1$.
+
+\end{document}
