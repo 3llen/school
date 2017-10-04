@@ -69,8 +69,139 @@
 \section{Formal systems}
 
 \newcommand{\vsys}{\mathbf{V}}
+\newcommand{\fsys}{\mathbf{F}}
+\newcommand{\tsys}{\mathbf{T}}
 
 We define a first formal system $\vsys$, with a single axiom \textqd{P},
 and a single inference rule $x \rewrite x1$.
+
+We define a second formal system $\fsys$, whose axioms are the theorems of the
+$\vsys$ system and whose inference rule is
+%
+\begin{equation*}
+  \infer{(x \succ y)}{%
+    x \hastype \fsys
+    &
+    y \hastype \fsys
+  }
+\end{equation*}
+
+Finally, we define a third formal system $tsys$, with the following axiom
+schema and inference rule.
+%
+\begin{equation*}
+  \infer{(x \succ (y \succ x))}{%
+    x \hastype \fsys
+    &
+    y \hastype \fsys
+  }
+  \quad
+  \infer{(x \succ x)}{%
+    x \hastype \tsys
+  }
+\end{equation*}
+
+\begin{enumerate}
+  \item
+    Here are three theorems of the $\vsys$ system.
+    \begin{itemize}
+      \item
+        $\mathqd{P}$
+      \item
+        $\mathqd{P1}$
+      \item
+        $\mathqd{P11}$
+    \end{itemize}
+
+  \item
+    Here are three theorems of the $\fsys$ system.
+    \begin{itemize}
+      \item
+        $\mathqd{P11111}$
+      \item
+        $\mathqd{P} \succ \mathqd{P1}$
+      \item
+        $\mathqd{P111} \succ (\mathqd{P11} \succ \mathqd{P1})$
+    \end{itemize}
+
+  \item
+    Here are three theorems of the $\tsys$ system.
+    \begin{itemize}
+        \newcommand{\xxx}{%
+          \mathqd{P111} \succ (\mathqd{P11} \succ \mathqd{P1})%
+        }
+        \newcommand{\yyy}{%
+          (\mathqd{P} \succ \mathqd{P1})%
+        }
+        \newcommand{\tone}{(\xxx \succ (\yyy \succ \xxx))}
+        \newcommand{\ttwo}{(\yyy \succ (\xxx \succ \yyy))}
+      \item
+        $\tone$
+      \item
+        $\ttwo$
+      \item
+        $(\tone \succ \ttwo)$.
+    \end{itemize}
+
+  \item
+    It is hard to think of a meaningful interpretation for the $\tsys$ system.
+
+    We can think of theorems of the $\vsys$ system as natural numbers this is
+    sound and complete.
+    Then the theorems of the $\fsys$ system can be interpreted as a binary
+    trees of natural numbers.
+    But the structure of the $\tsys$ system doesn't seem to represent anything
+    particularly useful.
+\end{enumerate}
+
+\section{Formal systems}
+
+\begin{enumerate}
+    \newcommand{\ysys}{\mathbf{Y}}
+  \item
+    We define the formal system $\ysys$.
+    \newcommand{\L}{\mathqd{L}}
+    Its alphabet is $-$, $\L$.
+    It has a single axiom $\L$.
+    It has two inference rules.
+    \begin{itemize}
+      \item
+        $\L y \rewrite \L y-$
+      \item
+        $x \L y \rewrite x-\L y$
+    \end{itemize}
+
+  \item
+    Here are four theorems of this system.
+    \begin{itemize}
+      \item $\L$
+      \item $\L---$
+      \item $-\L---$
+      \item $---\L---$
+    \end{itemize}
+
+  \item
+    A decision procedure for this system counts the number of hyphens before
+    the $\L$ and the number of hyphens after the $\L$. If the left number is
+    less than or equal to the right number, then the string is a theorem.
+\end{enumerate}
+
+\section{Interpretations}
+
+\begin{enumerate}
+  \item
+    Here are four theorems of the system.
+    \begin{itemize}
+      \item
+    \end{itemize}
+\end{enumerate}
+
+\section{Recursivity}
+
+\section{Formal primes}
+
+\section{Fancy nouns}
+
+
 
 \end{document}
