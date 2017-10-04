@@ -1,16 +1,18 @@
 \documentclass[11pt,letterpaper]{article}
 
-\author{Jacob Thomas Errington}
-\title{Experience}
-\date{}
+\usepackage[margin=1.9cm]{geometry}
+\usepackage{tgtermes}
+\usepackage{fancyhdr}
 
-\usepackage[margin=2.0cm]{geometry}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Errington, Jacob Thomas}
+\lhead{PUBLICATIONS \& EXPERIENCE}
+\cfoot{\thepage}
 
 \usepackage{hyperref}
 
 \begin{document}
-
-\maketitle
 
 \section{Publications}
 
@@ -26,92 +28,102 @@
 
 \section{Internships and research projects}
 
-In the summer preceding the start of my bachelors, I joined the lab of Simon
-Gravel\footnotemark{} as a casual research assistant.
-%
-\footnotetext{\url{http://simongravel.lab.mcgill.ca/}}%
-%
-I initially worked on data visualization software in Python. I later
-implemented a new demographic model for tracts,\footnotemark{} to resolve an
-issue with the existing model when faced with large populations due to an
-averaging of ancestry proportions.
-%
-\footnotetext{\url{https://github.com/sgravel/tracts}}%
-%
-The results of this new model were included in the paper \emph{The Great
-Migration and African-American Genomic Diversity} mentioned above.
-In the context of an independent studies course, I worked with Simon Gravel on
-a new method for unconstrained optimization of multivariate functions, based
-his earlier work\footnotemark{} on constraint satisfaction.
-%
-\footnotetext{\url{https://arxiv.org/abs/0801.0222}}
+\begin{itemize}
+  \item
+    In the summer preceding the start of my bachelors, I joined the lab of
+    Simon Gravel\footnotemark{} as a casual research assistant.
+    %
+    \footnotetext{\url{http://simongravel.lab.mcgill.ca/}}%
+    %
+    I initially worked on data visualization software in Python. I later
+    implemented a new demographic model for tracts,\footnotemark{} to resolve
+    an issue with the existing model when faced with large populations due to
+    an averaging of ancestry proportions.
+    %
+    \footnotetext{\url{https://github.com/sgravel/tracts}}%
+    %
+    The results of this new model were included in the paper \emph{The Great
+    Migration and African-American Genomic Diversity} mentioned above.  In the
+    context of an independent studies course, I worked with Simon Gravel on a
+    new method for unconstrained optimization of multivariate functions, based
+    his earlier work\footnotemark{} on constraint satisfaction.
+    %
+    \footnotetext{\url{https://arxiv.org/abs/0801.0222}}
 
-In spring 2015, I worked with three friends on a mobile application for
-matching part-time contractors with jobs in the restaurant and nightlife
-industries. We incorporated a company, and were accepted to the first cohort of
-the McGill X-1 Startup Accelerator\footnotemark{} alongside four other companies.
-%
-\footnotetext{\url{http://mcgillx1accelerator.com/}}
+  \item
+    In spring 2015, I worked with three friends on a mobile application for
+    matching part-time contractors with jobs in the restaurant and nightlife
+    industries. We incorporated a company, and were accepted to the first
+    cohort of the McGill X-1 Startup Accelerator\footnotemark{} alongside four
+    other companies.
+    %
+    \footnotetext{\url{http://mcgillx1accelerator.com/}}
 
-In early 2016, I started work at OOHLALA Mobile\footnotemark{} as a software
-engineer while continuing to pursue my bachelors. Due to the small size of the
-development team, I quickly found myself in a key position, as the lead
-engineer of the new integrations framework. This framework exists to provide a
-structured way to define new integrations between our customers' technical
-infrastructures and our database.
-%
-\footnotetext{\url{https://oohlalamobile.com/}}
+  \item
+    In early 2016, I started work at OOHLALA Mobile\footnotemark{} as a
+    software engineer while continuing to pursue my bachelors. Due to the small
+    size of the development team, I quickly found myself in a key position, as
+    the lead engineer of the new integrations framework. This framework exists
+    to provide a structured way to define new integrations between our
+    customers' technical infrastructures and our database.
+    %
+    \footnotetext{\url{https://oohlalamobile.com/}}
 
-In spring 2016, I took a course on compiler design, taught by Dr. Laurie
-Hendren, at McGill. The course centers around a project: to design and
-implement a compiler for a subset of Go called GoLite. Ordinarily, this project
-is completed in teams consisting of three members, but for an additional
-challenge, our team consisted of only two members. Our compiler used a
-generalized representation for the syntax tree, which gave us a type-safe way
-to attach annotations to the nodes in the tree. These annotations played
-different roles at different stages of compilation. At first, we used empty
-annotations to represent programmatically generated trees used in test cases.
-We used annotations to hold the locations in the source code of the different
-nodes. Finally, we augmented the annotations with typing information.
-%
-Our compiler featured a partial x86\_64 code generator and a complete C++ code
-generator. Our C++ code generator produced faster code than the reference
-compiler written by the teaching assistant.
-%
-For outstanding achievement in the course, Professor Hendren emailed me to
-award me an ``honourary A+'' grade in the course, as McGill does not have an A+
-grade.
+  \item
+    In spring 2016, I took a course on compiler design, taught by Dr. Laurie
+    Hendren, at McGill. The course centers around a project: to design and
+    implement a compiler for a subset of Go called GoLite. Ordinarily, this
+    project is completed in teams consisting of three members, but for an
+    additional challenge, our team consisted of only two members. Our compiler
+    used a generalized representation for the syntax tree, which gave us a
+    type-safe way to attach annotations to the nodes in the tree. These
+    annotations played different roles at different stages of compilation. At
+    first, we used empty annotations to represent programmatically generated
+    trees used in test cases.  We used annotations to hold the locations in the
+    source code of the different nodes. Finally, we augmented the annotations
+    with typing information.
+    %
+    Our compiler featured a partial x86\_64 code generator and a complete C++
+    code generator. Our C++ code generator produced faster code than the
+    reference compiler written by the teaching assistant.
+    %
+    For outstanding achievement in the course, Professor Hendren emailed me to
+    award me an ``honourary A+'' grade in the course, as McGill does not have
+    an A+ grade.
 
-In fall 2016, I took the graduate-level course on program analysis and
-transformations, which builds on the material in the compilers course.
-This course also centers on a project, completed individually. I chose to
-design an analysis and transformation framework for a toy imperative language.
-The framework took the form of a Haskell library. I further generalized the
-idea for the syntax tree representation that was used in the compiler project,
-by borrowing ideas from a ICFP paper\footnotemark.
-%
-\footnotetext{
-  Alexey Rodriguez, Stefan Holdermans, Andres L\"oh, Johan Jeuring.
-  \textit{
-    Generic programming with fixed points for mutually recursive datatypes.
-  }
-  ICFP 2009.
-}
+  \item
+    In fall 2016, I took the graduate-level course on program analysis and
+    transformations, which builds on the material in the compilers course.
+    This course also centers on a project, completed individually. I chose to
+    design an analysis and transformation framework for a toy imperative
+    language.  The framework took the form of a Haskell library. I further
+    generalized the idea for the syntax tree representation that was used in
+    the compiler project, by borrowing ideas from a ICFP paper\footnotemark.
+    %
+    \footnotetext{
+      Alexey Rodriguez, Stefan Holdermans, Andres L\"oh, Johan Jeuring.
+      \textit{
+        Generic programming with fixed points for mutually recursive datatypes.
+      }
+      ICFP 2009.
+    }
 
-In summer 2017, I spent ten weeks in New York City as a software developer
-intern for 1010data\footnotemark{}. I implemented a new strategy for logging
-users into the platform which reduced the baseline login time by a factor of
-twelve. Concretely, new user session processes are now created by forking an
-existing user session process, in order to skip the code loading phase
-associated with the traditional ``from scratch'' strategy.
-%
-\footnotetext{\url{http://1010data.com/}}%
-%
-Furthermore, I developed new infrastructure, in the form of a C extension, to
-assist in interactively debugging K\footnotemark applications, such as user
-sessions.
-%
-\footnotetext{\url{https://en.wikipedia.org/wiki/K_(programming_language)}}
+  \item
+    In summer 2017, I spent ten weeks in New York City as a software developer
+    intern for 1010data\footnotemark{}. I implemented a new strategy for
+    logging users into the platform which reduced the baseline login time by a
+    factor of twelve. Concretely, new user session processes are now created by
+    forking an existing user session process, in order to skip the code loading
+    phase associated with the traditional ``from scratch'' strategy.
+    %
+    \footnotetext{\url{http://1010data.com/}}%
+    %
+    Furthermore, I developed new infrastructure, in the form of a C extension,
+    to assist in interactively debugging K\footnotemark applications, such as
+    user sessions.
+    %
+    \footnotetext{\url{https://en.wikipedia.org/wiki/K_(programming_language)}}
+\end{itemize}
 
 \section{Other relevant information}
 
