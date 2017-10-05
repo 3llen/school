@@ -19,6 +19,12 @@
 \DeclareMathOperator{\SuspOp}{\mathqd{susp}}
 \newcommand{\susp}{\SuspOp}
 
+\newcommand{\iszero}{\operatorname{\mathtt{iszero}}}
+\renewcommand{\succ}{\operatorname{\mathtt{succ}}}
+\newcommand{\pred}{\operatorname{\mathtt{pred}}}
+\newcommand{\nat}{\mathtt{nat}}
+\newcommand{\case}[1]{\operatorname{\mathtt{case}}#1\operatorname{\mathtt{of}}}
+
 \begin{document}
 
 \maketitle
@@ -172,8 +178,8 @@
     The lemma says
     \emph{%
       if $\Gamma \proves N \hastype T$
-      and $\Gamma, x \hastype T \proves M \hastype S$,
-      then $\Gamma \proves [N/x]M \hastype S$.
+      and $\Gamma, x \hastype T, \Gamma^\prime \proves M \hastype S$,
+      then $\Gamma, \Gamma^\prime \proves [N/x]M \hastype S$.
     }
     So it wouldn't be possible to use the lemma.
 
@@ -261,6 +267,405 @@
     No substitution lemma required!
 
     No downsides jump out at me.
+\end{enumerate}
+
+\section{Case statement}
+
+\begin{enumerate}
+  \item
+    With a case statement for naturals, certain earlier builtins can now be
+    replaced by functions.
+    %
+    \begin{enumerate}
+      \item
+        $%
+        \iszero \equiv \lambda n : \nat.
+        \case{n} \succ k \goesto \true
+        \orcase \mathtt{z} \goesto \false
+        $
+
+      \item
+        $%
+        \pred \equiv \lambda n : \nat.
+        \case{n} \succ k \goesto k
+        \orcase \mathtt{z} \goesto \mathtt{z}
+        $
+    \end{enumerate}
+
+  \item
+    We extend substitutions for case-expressions.
+    (I am assuming that the duplicate $x$ in the question is a typo,
+    since the substitution should be capture-avoiding.)
+    %
+    \begin{equation*}
+      [s/x](\case{t} \mathtt{z} \goesto t_1 \orcase \succ k \goesto t_2)
+      =
+      \case{[s/x]t}
+      \mathtt{z} \goesto [s/x]t_1
+      \orcase \succ k \goesto [s/x]t_2
+    \end{equation*}
+    %
+    where $x \neq k$.
+
+  \item
+    We define a typing rule for case-expressions.
+    %
+    \begin{equation*}
+      \infer{%
+        \Gamma \proves
+        \case{t} \mathtt{z} \goesto t_1
+        \orcase \succ k \goesto t_2
+        \hastype T
+      }{%
+        \Gamma \proves t \hastype \nat
+        &
+        \Gamma \proves t_1 \hastype T
+        &
+        \Gamma, k \hastype \nat \proves t_2 \hastype T%
+      }
+    \end{equation*}
+
+  \item
+    We extend the substitution lemma for case-expressions.
+    %
+    \begin{prop}
+      If $\Gamma, x \hastype T, \Gamma^\prime \proves s \hastype S$
+      and $\Gamma \proves t \hastype T$,
+      then $\Gamma, \Gamma^\prime \proves [t/x]s \hastype S$.
+    \end{prop}
+    %
+    \begin{proof}
+      By structural induction on the typing derivation
+      $\mathcal{D} : \Gamma, x \hastype T, \Gamma^\prime \proves s \hastype S$.
+      %
+      \begin{description}
+        \item[Case] we have that $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{%
+              \Gamma, x \hastype T, \Gamma^\prime
+              \proves \mathtt{z} \hastype \nat%
+            }{}
+          \end{equation*}
+
+          By the definition of substitution,
+          $[t/x]\mathtt{z} \equiv \mathtt{z}$,
+          so we deduce
+          $\Gamma, \Gamma^\prime \proves [t/x]\mathtt{z} \hastype \nat$
+          by weakening on the typing rule for $\mathtt{z}$.
+
+        \item[Case] we have that $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{%
+              \Gamma, x \hastype T, \Gamma^\prime
+              \proves \succ k \hastype \nat%
+            }{%
+              \deduce[\mathcal{D}^\prime]{%
+                \Gamma, x \hastype T, \Gamma^\prime
+                \proves k \hastype \nat%
+              }{}%
+            }
+          \end{equation*}
+
+          By assumption, we have
+          $\mathcal{E} : \Gamma \proves t \hastype \nat$.
+
+          By the induction hypothesis on $\mathcal{D}^\prime$ and
+          $\mathcal{E}$,
+          we deduce
+          $\mathcal{E}^\prime :
+          \Gamma, \Gamma^\prime \proves [t/x]k \hastype \nat$.
+
+          By the typing rule for $\succ$,
+          we deduce
+          $\mathcal{F} :
+          \Gamma, \Gamma^\prime \proves \succ [t/x]k \hastype \nat$.
+
+          By inversion on the substitution definition,
+          we deduce
+          $\Gamma, \Gamma^\prime \proves [t/x] \succ k \hastype \nat$.
+
+        \item[Case] we have that $\mathcal{D}$ is of the form
+
+          \begin{equation*}
+            \infer{%
+              \Gamma, x\hastype T, \Gamma^\prime
+              \proves
+              \case{n} \mathtt{z} \goesto t_1
+              \orcase \succ k \goesto t_2
+              \hastype S%
+            }{%
+              \deduce[\mathcal{D}_1]{%
+                \Gamma, x\hastype T, \Gamma^\prime
+                \proves
+                n \hastype \nat%
+              }{}
+              &
+              \deduce[\mathcal{D}_2]{%
+                \Gamma, x\hastype T, \Gamma^\prime
+                \proves
+                t_1 \hastype S%
+              }{}
+              &
+              \deduce[\mathcal{D}_3]{%
+                \Gamma, x\hastype T, \Gamma^\prime, k\hastype \nat
+                \proves
+                t_2 \hastype S%
+              }{}
+            }
+          \end{equation*}
+          %
+          and we have by assumption that
+          %
+          $\mathcal{D}^\prime : \Gamma \proves t \hastype T$.
+
+          By the induction hypothesis on $\mathcal{D}_1$ and
+          $\mathcal{D}^\prime$,
+          we deduce
+          $\mathcal{D}_1^\prime : \Gamma, \Gamma^\prime
+          \proves [t/x]n \hastype \nat$.
+
+          By the induction hypothesis on $\mathcal{D}_2$ and
+          $\mathcal{D}^\prime$,
+          we deduce
+          $\mathcal{D}_2^\prime : \Gamma, \Gamma^\prime
+          \proves [t/x]t_1 \hastype S$.
+
+          By the induction hypothesis on $\mathcal{D}_3$ and
+          $\mathcal{D}^\prime$,
+          we deduce
+          $\mathcal{D}_3^\prime : \Gamma, \Gamma^\prime, k \hastype \nat
+          \proves [t/x]t_2 \hastype \nat$.
+
+          By the typing rule for case-expressions,
+          we construct the derivation $\mathcal{E}$.
+          %
+          \begin{equation*}
+            \infer{
+              \Gamma, \Gamma^\prime
+              \proves
+              \case{[t/x]n} \mathtt{z} \goesto [t/x]t_1
+              \orcase \succ k \goesto [t/x]t_2
+              \hastype S%
+            }{%
+              \deduce[\mathcal{D}_1^\prime]{%
+                \Gamma, \Gamma^\prime
+                \proves
+                [t/x]n \hastype \nat%
+              }{}
+              &
+              \deduce[\mathcal{D}_2^\prime]{%
+                \Gamma, \Gamma^\prime
+                \proves
+                [t/x]t_1 \hastype S%
+              }{}
+              &
+              \deduce[\mathcal{D}_3^\prime]{%
+                \Gamma, \Gamma^\prime, k\hastype \nat
+                \proves
+                [t/x]t_2 \hastype S%
+              }{}
+            }
+          \end{equation*}
+
+          By inversion of the substitution definition,
+          we deduce
+          $\mathcal{E} :
+          \Gamma, \Gamma^\prime
+          \proves
+          [t/x](\case{n} \mathtt{z} \goesto t_1 \orcase \succ k \goesto t_2)
+          \hastype S$, as required.
+      \end{description}
+    \end{proof}
+
+  \item
+    We extend type preservation for case-expressions.
+    %
+    \begin{prop}
+      If $\Gamma \proves t \hastype T$ and $t \evalbig v$,
+      then $\Gamma \proves v \hastype T$.
+    \end{prop}
+
+    \begin{proof}
+      By structural induction on the evaluation $\mathcal{D} : t \evalbig v$.
+      \begin{description}
+        \item[Case] we have that $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{%
+              \case{t} \mathtt{z} \goesto t_1
+              \orcase \succ k \goesto t_2%
+              \evalbig
+              v
+            }{%
+              \deduce[\mathcal{D}_0]{t \evalbig \mathtt{z}}{}
+              &
+              \deduce[\mathcal{D}_1]{t_1 \evalbig v}{}%
+            }
+          \end{equation*}
+          %
+          and that
+          $\mathcal{E} :
+          \Gamma \proves
+          \case{t} \mathtt{z} \goesto t_1
+          \orcase \succ k \goesto t_2
+          \hastype T$
+          by assumption.
+
+          By inverting the typing rule for case-expressions in $\mathcal{E}$,
+          we deduce
+          \begin{align*}
+            \mathcal{E}_0 &: \Gamma \proves t \hastype \nat \\
+            \mathcal{E}_1 &: \Gamma \proves t_1 \hastype T \\
+            \mathcal{E}_2 &: \Gamma, k\hastype \nat \proves t_2 \hastype T
+          \end{align*}
+
+          By the induction hypothesis on $\mathcal{D}_1$ and $\mathcal{E}_1$,
+          we deduce
+          $\mathcal{E}^\prime : \Gamma \proves v \hastype T$, as required.
+
+        \item[Case] we have that $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{%
+              \case{t} \mathtt{z} \goesto t_1
+              \orcase \succ k \goesto t_2%
+              \evalbig
+              v
+            }{%
+              \deduce[\mathcal{D}_0]{t \evalbig \succ v^\prime}{}
+              &
+              \deduce[\mathcal{D}_1]{[v^\prime/k]t_2 \evalbig v}{}%
+            }
+          \end{equation*}
+          %
+          and that
+          $\mathcal{E} :
+          \Gamma \proves
+          \case{t} \mathtt{z} \goesto t_1
+          \orcase \succ k \goesto t_2
+          \hastype T$
+          by assumption.
+
+          By inverting the typing rule for case-expressions in $\mathcal{E}$,
+          we deduce
+          \begin{align*}
+            \mathcal{E}_0 &: \Gamma \proves t \hastype \nat \\
+            \mathcal{E}_1 &: \Gamma \proves t_1 \hastype T \\
+            \mathcal{E}_2 &: \Gamma, k\hastype \nat \proves t_2 \hastype T
+          \end{align*}
+
+          By the induction hypothesis on $\mathcal{D}_0$ and $\mathcal{E}_0$,
+          we deduce
+          $\mathcal{E}_0^\prime : \Gamma \proves \succ v^\prime \hastype \nat$.
+
+          By inverting the typing rule for $\succ$ in $\mathcal{E}_0^\prime$,
+          we deduce
+          $\mathcal{E}_0^{\prime\prime} :
+          \Gamma \proves v^\prime \hastype \nat$.
+
+          By the substitution lemma on $\mathcal{E}_0^{\prime\prime}$ and
+          $\mathcal{E}_2$,
+          we deduce
+          $\mathcal{E}_2^\prime :
+          \Gamma \proves [v^\prime/k]t_2 \hastype T$.
+
+          By the induction hypothesis on
+          $\mathcal{D}_1$ and $\mathcal{E}_2^\prime$,
+          we deduce $\Gamma \proves v \hastype T$, as required.
+      \end{description}
+    \end{proof}
+
+  \item
+    We propose the following corresponding (i.e. strict) small-step semantics.
+    %
+    \begin{equation*}
+      \infer{%
+        \case{t} \mathtt{z} \goesto t_1 \orcase \succ k \goesto t_2
+        \evalto
+        \case{t^\prime} \mathtt{z} \goesto t_1 \orcase \succ k \goesto t_2
+      }{t \evalto t^\prime} \\
+    \end{equation*}
+    %
+    \begin{equation*}
+      \case{\mathtt{z}} \mathtt{z} \goesto t_1 \orcase \succ k \goesto t_2
+      \evalto
+      t_1
+    \end{equation*}
+    %
+    \begin{equation*}
+      \case{\succ v} \mathtt{z} \goesto t_1 \orcase \succ k \goesto t_2
+      \evalto
+      [v/k]t_2
+    \end{equation*}
+
+  \item
+    We show that progress holds for these operational semantics.
+    %
+    \begin{prop}
+      If $\Gamma \proves t \hastype T$, then
+      either $t$ is a value or there exists $t^\prime$ such that $t \evalto
+      t^\prime$.
+    \end{prop}
+    %
+    \begin{proof}
+      By structural induction on the typing derivation
+      $\mathcal{D} : \Gamma \proves t \hastype T$.
+
+      \begin{description}
+        \item[Case] we have that $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{%
+              \Gamma
+              \proves
+              \case{t} \mathtt{z} \goesto t_1
+              \orcase \succ k \goesto t_2
+              \hastype
+              T
+            }{
+              \deduce[\mathcal{D}_1]{\Gamma \proves t \hastype \nat}{}
+              &
+              \deduce[\mathcal{D}_2]{\Gamma \proves t_1 \hastype T}{}
+              &
+              \deduce[\mathcal{D}_3]{
+                \Gamma, k\hastype \nat \proves t_2 \hastype T
+              }{}
+            }
+          \end{equation*}
+
+          By the induction hypothesis on $\mathcal{D}_1$,
+          we deduce that either $t$ is a value or there exists $t^\prime$ such
+          that $t \evalto t^\prime$.
+          We analyze the two subcases.
+          %
+          \begin{description}
+            \item[Subcase] $t$ is a value.
+              Then we proceed by case analysis on $t$,
+              since we know $\Gamma \proves t \hastype \nat$.
+              \begin{description}
+                \item[Case] $t = \mathtt{z}$.
+
+                  Then we can step using the $\mathtt{z}$ evaluation rule for
+                  $\case{\cdot}$.
+
+                \item[Case] $t = \succ k$.
+
+                  Then we can step using the $\succ$ evaluation rule for
+                  $\case{\cdot}$.
+              \end{description}
+
+            \item[Subcase]
+              there exists $t^\prime$ such that $t \evalto t^\prime$.
+
+              Then we can step using the congruence rule for the subject of the
+              case expression.
+          \end{description}
+      \end{description}
+
+      This establishes that we have progress for case-expressions.
+    \end{proof}
 \end{enumerate}
 
 \end{document}
