@@ -6,6 +6,11 @@
 
 \usepackage[geometry]{jakemath}
 
+\DeclareMathOperator{\isprime}{\mathqd{P}}
+\DeclareMathOperator{\df}{\mathqd{DF}}
+\DeclareMathOperator{\dnd}{\mathqd{DND}}
+\newcommand{\hy}{\mathtt{-}}
+
 \begin{document}
 
 \maketitle
@@ -160,30 +165,30 @@ schema and inference rule.
     \newcommand{\ysys}{\mathbf{Y}}
   \item
     We define the formal system $\ysys$.
-    \newcommand{\L}{\mathqd{L}}
-    Its alphabet is $-$, $\L$.
-    It has a single axiom $\L$.
+    \newcommand{\Lop}{\mathqd{L}}
+    Its alphabet is $-$, $\Lop$.
+    It has a single axiom $\Lop$.
     It has two inference rules.
     \begin{itemize}
       \item
-        $\L y \rewrite \L y-$
+        $\Lop y \rewrite \Lop y-$
       \item
-        $x \L y \rewrite x-\L y$
+        $x \Lop y \rewrite x-\Lop y$
     \end{itemize}
 
   \item
     Here are four theorems of this system.
     \begin{itemize}
-      \item $\L$
-      \item $\L---$
-      \item $-\L---$
-      \item $---\L---$
+      \item $\Lop$
+      \item $\Lop---$
+      \item $-\Lop---$
+      \item $---\Lop---$
     \end{itemize}
 
   \item
     A decision procedure for this system counts the number of hyphens before
-    the $\L$ and the number of hyphens after the $\L$. If the left number is
-    less than or equal to the right number, then the string is a theorem.
+    the $\Lop$ and the number of hyphens after the $\Lop$. If the left number
+    is less than or equal to the right number, then the string is a theorem.
 \end{enumerate}
 
 \section{Interpretations}
@@ -193,15 +198,132 @@ schema and inference rule.
     Here are four theorems of the system.
     \begin{itemize}
       \item
+        \texttt{T E T}
+      \item
+        \texttt{[T A T] E T}
+      \item
+        \texttt{[T A T] E [T O F]}
+      \item
+        \texttt{[T A T] E [T O [F A T]]}
     \end{itemize}
+
+  \item
+    The interpretations according to the proposed scheme are the following.
+    \begin{itemize}
+      \item
+        $5 = 5$
+      \item
+        $(5 \min 5) = 5$
+      \item
+        $(5 \min 5) = (5 \max 3)$
+      \item
+        $(5 \min 5) = (5 \max (3 \min 5))$
+    \end{itemize}
+
+  \item
+    Yes. This is a model.
+    We won't give a formal proof.
+    Intuitively to see this, we can think of each inference rule as replacing
+    a five or three with an equivalent expression. So let's look at each rule.
+    \begin{description}
+      \item[Rule 1.] $5 = 5 \min 5$
+      \item[Rule 2.] $5 = 5 \max 3$
+      \item[Rule 3.] $5 = 3 \max 5$
+      \item[Rule 4.] $5 = 5 \max 5$
+      \item[Rule 5.] $3 = 3 \min 5$
+      \item[Rule 6.] $3 = 5 \min 3$
+    \end{description}
+
+    Since these substitutions are legitimate, and indeed the axiom $5 = 5$ is
+    true in the interpretation, we have that this interpretation is a model.
+
+  \item
+    You bet I can.
+    We can interpret brackets as parens, \texttt{T} as \textqd{true},
+    \texttt{F} as \textqd{false}, \texttt{O} as $\lor$, and \texttt{A} as
+    $\land$.
+
+    Indeed, the rules transform \textqd{true} into a tautologically true
+    expression and \textqd{false} into a tautologically false expression.
 \end{enumerate}
 
 \section{Recursivity}
 
+\begin{enumerate}
+  \item
+    \emph{%
+      There exist formal systems whose negative space (set of non-theorems) is
+      not the positive space (set of theorems) of any formal system.%
+    }
+
+    More precisely we can consider a set of theorems of a formal system $A$ and
+    its complement $\neg A$, which is the set of all \emph{negations} of the
+    theorems in $A$.
+    By the nature of a formal system, we can recursively enumerate all its
+    theorems, as a breadth-first search by applying inference rules starting
+    from the axioms.
+    However, the complementary set of theorems $\neg A$ may not be recursively
+    enumerate.
+    In fact, if the complementary set is recursively enumerable, then the set
+    $A$ is decidable. To see this, consider an arbitrary well-formed string of
+    the system.
+    Recursively enumerate both sets; eventually the string \emph{must} show up
+    in one of the enumerations, \emph{in finite time!}
+    Some sets are undecidable (e.g. Turing machines that halt), so it follows
+    that some formal systems must have complements that are not recursively
+    enumerable.
+
+  \item
+    I would explain this to a non-technical person in a similar way via the
+    above argument. Consider an infinite set $A$ of numbers that you can
+    enumerate, but the enumeration doesn't have any special structure. The
+    numbers that come out seem \emph{random}, in some sense. If you pick an
+    arbitrary number $n$ that just so happens to be in $A$ and wait long
+    enough, then it will show up in the listing. Otherwise it won't. However
+    you can \emph{never be sure} that it won't show up later! However, if you
+    \emph{also} can make a \emph{random listing} of the elements \emph{not in}
+    $A$, then you can list both at the same time and of course the number will
+    eventually crop up in one of the lists!
+\end{enumerate}
+
 \section{Formal primes}
+
+What follows is a proof tree for $\isprime \hy\hy\hy\hy\hy$.
+
+\begin{equation*}
+  \infer{\isprime \hy\hy\hy\hy\hy}{
+    \infer{\hy\hy\hy\hy\hy \df \hy\hy\hy\hy}{
+      \infer{\hy\hy\hy\hy\hy \df \hy\hy\hy}{
+        \infer{\hy\hy\hy\hy\hy \df \hy\hy}{
+          \infer{\hy\hy \dnd \hy\hy\hy\hy\hy}{
+            \infer{\hy\hy \dnd \hy\hy\hy}{
+              \infer[\text{axiom}]{\hy\hy \dnd \hy}{}
+            }
+          }
+        }
+        &
+        \infer{\hy\hy\hy \dnd \hy\hy\hy\hy\hy}{
+          \infer[\text{axiom}]{\hy\hy\hy \dnd \hy\hy}{}
+        }
+      }
+      &
+      \infer{\hy\hy\hy\hy \dnd \hy\hy\hy\hy\hy}{
+        \infer[\text{axiom}]{\hy\hy\hy\hy \dnd \hy}{}
+      }
+    }
+  }
+\end{equation*}
 
 \section{Fancy nouns}
 
+``The quick brown fox'' is a fancy noun because the simplest fancy noun is an
+ornate noun. It's an ornate noun because it begins with an article, followed by
+zero or more adjectives, followed by a noun.
 
+\section{Propositional logic}
+
+
+
+\section{History}
 
 \end{document}
