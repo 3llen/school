@@ -1,3 +1,4 @@
 .PHONY: all
 all:
-	make -C assignments
+	make -C assignments/1
+	make -C assignments/2
