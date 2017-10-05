@@ -5,6 +5,7 @@
 \date{Thursday, 5 October 2017}
 
 \usepackage[geometry]{jakemath}
+\usepackage{hyperref}
 
 \DeclareMathOperator{\isprime}{\mathqd{P}}
 \DeclareMathOperator{\df}{\mathqd{DF}}
@@ -322,8 +323,61 @@ zero or more adjectives, followed by a noun.
 
 \section{Propositional logic}
 
+\begin{enumerate}
+  \item
+    Here is the truth table for
+    $\mathqd{P}_1 \supset (\mathqd{P}_0 \supset \mathqd{P}_1)$.
 
+    \begin{tabular}{c c | c c}
+      $\mathqd{P}_0$ & $\mathqd{P}_1$ & $\mathqd{P}_0 \supset \mathqd{P}_1$ & $\mathqd{P}_1 \supset (\mathqd{P}_0 \supset \mathqd{P}_1)$ \\ \hline
+      $\top$ & $\top$ & $\top$ & $\top$ \\
+      $\top$ & $\bot$ & $\bot$ & $\top$ \\
+      $\bot$ & $\top$ & $\top$ & $\top$ \\
+      $\bot$ & $\bot$ & $\top$ & $\top$
+    \end{tabular}
+
+  \item
+    We analyze some expressions.
+    Note that I like the colour red.
+
+    \begin{enumerate}
+      \item
+        ``The moon is made of green cheese or I don't like red''
+        is \emph{false} because neither the moon is made of green cheese nor do
+        I not like the colour red.
+
+      \item
+        ``If the moon is made of green cheese, then I like red''
+        is \emph{true} because anything follows from a falsehood.
+
+      \item
+        ``If it is not the case that $2 + 2 = 4$, then the moon is made of
+        green cheese.''
+        To analyze this I consider the contrapositive
+        ``If the moon is not made of green cheese, then $2 + 2 = 4$.''
+        Since the moon is indeed not made of green cheese,
+        and $2 + 2 = 4$, we can conclude that the hypothetical is true.
+    \end{enumerate}
+\end{enumerate}
 
 \section{History}
+
+Cantor was a German mathematician.
+He invented set theory and established many fundamental results such as the
+fact that the reals are more numerous than the naturals.
+More generally he showed that there is an infinite hierarchy of infinite
+cardinals.
+This discovery was upsetting to some Christians at the time, because they
+viewed it as a contradiction of the infinity of God.
+As for Cantor's contemporaries, they viewed his work extremely negatively.
+Many outright insulted him!
+Broadly speaking, the mathematical community was very divided on the issue of
+set theory.
+Cantor's later years were quite tragic.
+He was stricken with depression, due to the very harsh reception his work
+received.
+Towards the end of his life, he lived in poverty due to the First World War.
+
+Source: \url{https://en.wikipedia.org/wiki/Georg_Cantor}
 
 \end{document}
