@@ -1,0 +1,266 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[geometry]{jakemath}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#2\\Language-based security -- COMP 523}
+\date{Thursday, 5 October 2017}
+
+\DeclareMathOperator{\LetOp}{\mathqd{let}}
+\DeclareMathOperator{\InOp}{\mathqd{in}}
+\newcommand{\Let}[2]{\LetOp #1 \InOp #2}
+
+\DeclareMathOperator{\DelayOp}{\mathqd{delay}}
+\newcommand{\delay}{\DelayOp}
+
+\DeclareMathOperator{\ForceOp}{\mathqd{force}}
+\newcommand{\force}{\ForceOp}
+
+\DeclareMathOperator{\SuspOp}{\mathqd{susp}}
+\newcommand{\susp}{\SuspOp}
+
+\begin{document}
+
+\maketitle
+
+\section{Lazy evaluation}
+
+\begin{enumerate}
+  \item
+    $\force \equiv \lambda x. \Let{\delay x^\prime = x}{x^\prime}$
+
+  \item
+    We want to show operational equivalence between an expression $e$ and
+    $\force(\delay e)$.
+
+    \begin{prop}
+      For any expression $e$,
+      $\force(\delay e) \evalbig v$
+      if and only if
+      $e \evalbig v$.
+    \end{prop}
+
+    \begin{proof}
+      Suppose $\force(\delay e) \evalbig v$.
+      First we expand the definition of $\force$.
+      %
+      \begin{equation*}
+        (\lambda x. \Let{\delay x^\prime = x}{x^\prime}) (\delay e) \evalbig v
+      \end{equation*}
+
+      By a lemma\footnotemark{} seen in class, we can proceed with a $\beta$
+      reduction.
+      \footnotetext{%
+        The lemma relates the big-step and small-step semantics.
+        \emph{%
+          If $t^\prime \evalbig v$ and $t \evalto t^\prime$,
+          then $t \evalbig v$.
+        }
+      }
+      %
+      \begin{equation*}
+        \mathcal{D} : \Let{\delay x^\prime = \delay e}{x^\prime} \evalbig v
+      \end{equation*}
+
+      By inversion of $\mathcal{D}$,
+      we obtain
+      %
+      \begin{align*}
+        \mathcal{D}_1 &: \delay e \evalbig \delay e^\prime \\
+        \mathcal{D}_2 &: [e^\prime/x^\prime]x^\prime \evalbig v
+      \end{align*}
+
+      By inversion of $\mathcal{D}_1$, we deduce that $e = e^\prime$.
+      Then by substitution we deduce that $e \evalbig v$.
+
+      Next suppose $\mathcal{D} : e \evalbig v$.
+      We construct the following derivation.
+      \begin{equation*}
+        \infer{\Let{\delay x = \delay e}{x} \evalbig v}{
+          \infer{\delay e \evalbig \delay e}{}
+          &
+          \infer[\text{ass.}]{e \evalbig v}{}
+        }
+      \end{equation*}
+      %
+      Finally we would use a variant of the lemma from class to get to the
+      unevaluated form $\force(\delay e)$.
+    \end{proof}
+
+  \item
+    We extend substitutions for the $\delay$ introduction and elimination
+    forms.
+
+    \begin{align*}
+      [e^\prime/x](\delay e) &= \delay [e^\prime/x]e \\
+      [e^\prime/x](\Let{\delay x^\prime = e_1}{e_2})
+        &= \Let{\delay x^\prime = [e^\prime/x]e_1}{[e^\prime/x]e_2}
+    \end{align*}
+    where in the $\Let{\cdot}{\cdot}$ case we ensure the substitution is
+    capture-avoiding.
+
+  \item
+    We show type preservation for the operational semantics.
+
+    \begin{prop}[Type preservation.]
+      If $\Gamma \proves t \hastype T$ and $t \evalbig v$,
+      then $\Gamma \proves v \hastype T$.
+    \end{prop}
+
+    \begin{proof}
+      By structural induction on the evaluation $\mathcal{D} : t \evalbig v$.
+
+      \begin{description}
+        \item[Case]
+          We have $\mathcal{D} : \delay e \evalbig \delay e$,
+          i.e. term to evaluate is already a value.
+          The terms are the same, so by type uniqueness they have the same
+          type.
+
+        \item[Case]
+          We have that $\mathcal{D}$ is
+          \begin{equation*}
+            \infer{\Let{\delay x = e_1}{e_2} \evalbig v}{
+              \deduce[\mathcal{D}_1]{e_1 \evalbig \delay e^\prime}{}
+              &
+              \deduce[\mathcal{D}^\prime]{[e^\prime/x]e_2 \evalbig v}{}
+            }
+          \end{equation*}
+          %
+          and we know that
+          $\Gamma \proves \Let{\delay x = e_1}{e_2} \hastype T$
+          by assumption.
+
+          By inversion of the typing rule for the $\Let{\cdot}{\cdot}$ form, we
+          deduce
+          %
+          \begin{align*}
+            \mathcal{F}_1 &: \Gamma \proves e_1 \hastype \susp S \\
+            \mathcal{F}_2 &: \Gamma, x \hastype S \proves e_2 \hastype T
+          \end{align*}
+
+          By the induction hypothesis on $\mathcal{F}_1$ and $\mathcal{D}_1$,
+          we deduce
+          $\Gamma \proves \delay e^\prime \hastype \susp S$.
+
+          By inverting the typing rule for $\delay$ introduction, we deduce
+          $\mathcal{F} : \Gamma \proves e^\prime \hastype S$.
+
+          By the substitution lemma on $\mathcal{F}$ and $\mathcal{F}_2$,
+          we deduce
+          $\mathcal{F}^\prime : \Gamma \proves [e^\prime/x]e_2 \hastype T$.
+
+          By the induction hypothesis on
+          $\mathcal{F}^\prime$ and $\mathcal{D}^\prime$,
+          we deduce $\mathcal{E} : \Gamma \proves v \hastype T$.
+      \end{description}
+    \end{proof}
+
+  \item
+    Type preservation breaks down if we pick the rule
+    \begin{equation*}
+      \infer{\Gamma \proves \Let{\delay x = e_1}{e_2} \hastype T}{%
+        \Gamma \proves e_1 \hastype \susp S
+        &
+        \Gamma \proves [e_1/x]e_2 \hastype T
+      }
+    \end{equation*}
+
+    The proof would be the same up to the point where we invoke the
+    substitution lemma, since that's the first time we touch the typing of
+    $e_2$.
+    The lemma says
+    \emph{%
+      if $\Gamma \proves N \hastype T$
+      and $\Gamma, x \hastype T \proves M \hastype S$,
+      then $\Gamma \proves [N/x]M \hastype S$.
+    }
+    So it wouldn't be possible to use the lemma.
+
+    Concretely, we would have
+    $F_2 : \Gamma \proves [e_1/x]e_2 \hastype T$,
+    but in order to complete the proof, we would need
+    to have $\Gamma \proves [e^\prime/x]e_2 \hastype T$
+    in order to use the induction hypothesis the second time.
+
+  \item
+    We extend the definition of values and prove value soundness.
+
+    Since we don't evaluate $\delay e$, we simply consider delayed computations
+    to be values. This agrees with the idea that values should evaluate to
+    themselves, since $\delay e \evalbig \delay e$.
+
+    \begin{prop}
+      If $e \evalbig v$, then $v$ is a value.
+    \end{prop}
+
+    \begin{proof}
+      By structural induction on $\mathcal{D} : e \evalbig v$.
+
+      \begin{description}
+        \item[Case]
+          $\mathcal{D} : \delay e \evalbig \delay e$ is trivial.
+
+        \item[Case] we have that $\mathcal{D}$ is
+          \begin{equation*}
+            \infer{\Let{\delay x = e_1}{e_2} \evalbig v}{
+              \deduce[\mathcal{D}_1]{e_1 \evalbig \delay e^\prime}{}
+              &
+              \deduce[\mathcal{D}^\prime]{[e^\prime/x]e_2 \evalbig v}{}
+            }
+          \end{equation*}
+
+          We appeal to the induction hypothesis on $\mathcal{D}^\prime$ and
+          immediately conclude $v$ is a value.
+      \end{description}
+    \end{proof}
+
+  \item
+    Rather than eliminate $\delay$ using a let form, we consider a builtin
+    $\force$ eliminator.
+    It would be evaluated like this:
+    \begin{equation*}
+      \infer{\force e \evalbig v}{
+        e \evalbig \delay e^\prime
+        &
+        e^\prime \evalbig v
+      }
+    \end{equation*}
+
+    Aesthetically this rule looks pretty nice because it reminds me of a
+    transitivity property if you squint a little.
+
+    Proving type preservation would be simpler.
+    \begin{description}
+      \item[Case]
+        we have
+        \begin{equation*}
+          \infer{\force e \evalbig v}{
+            \deduce[\mathcal{D}_1]{e \evalbig \delay e^\prime}{}
+            &
+            \deduce[\mathcal{D}_2]{e^\prime \evalbig v}{}
+          }
+        \end{equation*}
+        and
+        $\mathcal{F} : \Gamma \proves \force e \hastype T$.
+
+        By inverting the $\force$ typing rule
+        we deduce $\mathcal{F}^\prime : \Gamma \proves e \hastype \susp T$.
+
+        By the induction hypothesis on $\mathcal{D}_1$ and
+        $\mathcal{F}^\prime$,
+        we deduce
+        $\mathcal{E}^\prime : \Gamma \proves \delay e^\prime \hastype \susp T$.
+
+        By inverting the $\delay$ type rule
+        we deduce $\mathcal{E} : \Gamma \proves e^\prime \hastype T$.
+
+        By the induction hypothesis on $\mathcal{D}_2$ and $\mathcal{E}$,
+        we deduce $\Gamma \proves v \hastype T$.
+    \end{description}
+    No substitution lemma required!
+
+    No downsides jump out at me.
+\end{enumerate}
+
+\end{document}
