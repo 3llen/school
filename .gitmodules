@@ -22,3 +22,6 @@
 [submodule "comp-525/project"]
 	path = comp-525/project
 	url = git@github.com:tsani/tortoise.git
+[submodule "comp-396/chrona"]
+	path = comp-396/chrona
+	url = git@github.com:tsani/chrona.git
