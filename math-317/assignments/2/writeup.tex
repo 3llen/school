@@ -1,0 +1,61 @@
+\documentclass[11pt,letterpaper]{article}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#2\\Numerical analysis -- MATH 317}
+\date{Monday, 23 October 2017}
+
+\usepackage[geometry]{jakemath}
+
+\begin{document}
+
+\maketitle
+
+\section{Lagrange interpolation}
+
+\begin{enumerate}
+  \item
+    We interpolate $\cot$ from the table and compute
+    $\cot(0.0015) = 684.89532815$.
+
+    We interpolate $\sin$ and $\cos$ from the table to compute
+    \begin{equation*}
+      \cot(0.0015)
+      = \frac{\cos(0.0015)}{\sin(0.0015)}
+      = \frac{0.99999871875}{0.0015000}
+      = 666.666
+    \end{equation*}
+
+  \item
+    We estimate the error due to division of $\cos$ by $\sin$ in our second
+    calculation of $\cot$.
+
+    In general if $z = f(x)$ then
+    \begin{equation*}
+      \Delta z = \Delta x \cdot \deriv{x} f(x)
+    \end{equation*}
+
+    In our case, $f = \cot$, so $\deriv{x} \cot x = \frac{-1}{\sin^2 x}$.
+    The input $0.0015$ is correct up to four decimals, so
+    $\Delta x \leq 0.00001$.
+    Then we compute an upper bound on the error $\Delta z$ due to the division.
+    \begin{equation*}
+      \Delta z
+      \leq 0.00001 \cdot \frac{1}{\sin^2 0.0015}
+      = 4.4444
+    \end{equation*}
+    So the error arising from the division of $\cos$ by $\sin$ is quite large.
+
+    This does not explain the difference in the results, however.
+    We suspect that method b is more accurate for computing $\cot$.
+    Our reasoning is that near $x = 0$, we know that $\sin x$ is approximated
+    well by a straight line.
+    Indeed, the Lagrange interpolation of $\sin$ using the given data does not
+    oscillate between the data points, and produces a straight line.
+    Similarly, $\cos$ appears to be well approximated by a straight line in the
+    given dataset.
+    On the other hand, our interpolation of $\cot$ is less reliable, since its
+    behaviour as a function is more complex near $x = 0$; it deviates quite a
+    lot from the truth.
+\end{enumerate}
+
+\end{document}
