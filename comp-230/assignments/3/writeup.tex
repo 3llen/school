@@ -1,0 +1,162 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[geometry]{jakemath}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#3\\Logic and computability -- COMP 230}
+\date{24 October 2017}
+
+\renewcommand{\implies}{\supset}
+
+\begin{document}
+
+\maketitle
+
+\section{Propositional logic}
+
+We consider the formula $\mathqd{B} \lor (\mathqd{A} \implies \mathqd{A})$.
+
+\begin{enumerate}
+    \item
+      To see that this is a tautology, we draw the truth table for the formula.
+
+      \begin{tabular}{cc|cc}
+        \textqd{A} & \textqd{B} & $\mathqd{A} \implies \mathqd{A}$ & $\mathqd{B} \lor (\mathqd{A} \implies \mathqd{A})$ \\
+        \hline
+        $\top$ & $\top$ & $\top$ & $\top$ \\
+        $\top$ & $\bot$ & $\top$ & $\top$ \\
+        $\bot$ & $\top$ & $\top$ & $\top$ \\
+        $\bot$ & $\bot$ & $\top$ & $\top$
+      \end{tabular}
+
+    \item
+      We prove the statement using natural deduction.
+
+      \begin{equation*}
+        \infer[\lor\text{Intro}_r]{%
+          \mathqd{B} \lor (\mathqd{A} \implies \mathqd{A})%
+        }{
+          \infer[\implies\text{Intro}_1]{
+            \mathqd{A} \implies \mathqd{A}
+          }{
+            [\mathqd{A}]_1
+          }
+        }
+      \end{equation*}
+
+    \item
+      We prove the statement using the axiomatic system.
+
+      \begin{align}
+        \mathqd{A} \implies \mathqd{A}
+        &\quad
+        \text{theorem from handout}
+        \label{eq:a-a} \\
+        %
+        (\mathqd{A} \implies \mathqd{A})
+        \implies (\mathqd{B} \lor (\mathqd{A} \implies \mathqd{A}))
+        &\quad
+        \text{%
+          Ax9[$\mathqd{A} \implies \mathqd{A} / \mathqd{B}$,
+          $\mathqd{B}/\mathqd{A}$]}
+        \label{eq:a-a-b-or-a-a} \\
+        %
+        \mathqd{B} \lor (\mathqd{A} \implies \mathqd{A})
+        &\quad
+        \text{MP: \ref{eq:a-a}, \ref{eq:a-a-b-or-a-a}}
+      \end{align}
+
+    \item
+      We prove the statement using the GEB system.
+      Except that we don't.
+\end{enumerate}
+
+\section{Propositional logic}
+
+\begin{description}
+  \item[Exercise \#8]
+    Check whether
+    \begin{equation*}
+      \mathqd{P}_1, \mathqd{P}_2
+      \entails
+      \neg(\mathqd{P}_1 \implies \mathqd{P}_2)
+      \implies
+      (\mathqd{P}_2 \implies \mathqd{P}_1)
+    \end{equation*}
+
+    We draw a truth table, but only considering the cases where the assumptions
+    hold.
+
+    \begin{center}
+      \begin{tabular}{cc|cccc}
+        $\mathqd{P}_1$ &
+        $\mathqd{P}_2$ &
+        $\mathqd{P}_1 \implies \mathqd{P}_2$ &
+        $\neg(\mathqd{P}_1 \implies \mathqd{P}_2)$ &
+        $\mathqd{P}_2 \implies \mathqd{P}_1$ &
+        $\neg(\mathqd{P}_1 \implies \mathqd{P}_2)
+        \implies
+        (\mathqd{P}_2 \implies \mathqd{P}_1)$ \\
+        \hline
+        %
+        $\top$ & $\top$ & $\top$ & $\bot$ & $\top$ & $\top$
+      \end{tabular}
+    \end{center}
+
+  \item[Exercise \#10]
+    We annotate a proof in the natural deduction calculus with the names of the
+    inference rules used therein.
+
+    \begin{equation*}
+      \infer[\text{ex falso}]{
+        A \lor \neg A
+      }{
+        \infer[\neg\text{Elim}]{\bot}{
+          \infer{A \lor \neg A}{
+            \infer{\neg A}{
+              \infer{\bot}{
+                \infer{A \lor \neg A}{
+                  [A]
+                }
+                &
+                [\neg(A \lor \neg A)]
+              }
+            }
+          }
+        }
+      }
+    \end{equation*}
+\end{description}
+
+\section{Soundness and completeness}
+
+In the mathematical study of formal logic, a property that we seek for many
+formal systems is that they be \emph{sound} and \emph{complete}.
+These properties relate the syntax of the system with the semantics of the
+system. For instance, consider the formula $A \implies A$.
+Intuitively, this formula is \emph{true}: if we
+assume something, then of course we can deduce that thing.
+This is made precise by the notion of \emph{truth tables}.
+Each connective, such as $\implies$ has a truth table that relates the truth
+values (true or false) of its inputs to the truth value of the connective.
+We can verify that $A \implies A$ is true by looking at the truth table for
+$\implies$.
+We say that $A \implies A$ follows from \emph{no assumptions} and write
+$\cdot \entails A \implies A$ if, for any truth value of $A$,
+it holds that $A \implies A$.
+
+On the other hand, we can \emph{prove} the statement $A \implies A$ using an
+appropriate \emph{proof system}. A proof system is a system of purely syntactic
+rules for writing proofs.
+We would like it that no matter what we write, as long as we follow the rules
+of the system, that the statements that we end up proving are true. This
+property is precisely \emph{soundness}.
+A well-known proof system from the early 20\th{} century is \emph{natural
+deduction}. This system is sound.
+
+Conversely, if we know that a particular formula is true, we would also like to
+be sure that there exists a proof for it. In other words, we don't want there
+to be any ``unattainable'' truths, that we cannot deduce. This property is
+\emph{completeness}.
+
+\end{document}
