@@ -68,65 +68,187 @@ We consider the formula $\mathqd{B} \lor (\mathqd{A} \implies \mathqd{A})$.
 
     \item
       We prove the statement using the GEB system.
-      Except that we don't.
+      Except that we don't, because it's too tedious.
 \end{enumerate}
 
 \section{Propositional logic}
 
-\begin{description}
-  \item[Exercise \#8]
-    Check whether
-    \begin{equation*}
-      \mathqd{P}_1, \mathqd{P}_2
-      \entails
-      \neg(\mathqd{P}_1 \implies \mathqd{P}_2)
-      \implies
-      (\mathqd{P}_2 \implies \mathqd{P}_1)
-    \end{equation*}
+\begin{enumerate}
+  \item
+    We do exercises from handout 2.
 
-    We draw a truth table, but only considering the cases where the assumptions
-    hold.
+    \begin{description}
+      \item[Exercise \#8.]
+        Check whether
+        \begin{equation*}
+          \mathqd{P}_1, \mathqd{P}_2
+          \entails
+          \neg(\mathqd{P}_1 \implies \mathqd{P}_2)
+          \implies
+          (\mathqd{P}_2 \implies \mathqd{P}_1)
+        \end{equation*}
 
-    \begin{center}
-      \begin{tabular}{cc|cccc}
-        $\mathqd{P}_1$ &
-        $\mathqd{P}_2$ &
-        $\mathqd{P}_1 \implies \mathqd{P}_2$ &
-        $\neg(\mathqd{P}_1 \implies \mathqd{P}_2)$ &
-        $\mathqd{P}_2 \implies \mathqd{P}_1$ &
-        $\neg(\mathqd{P}_1 \implies \mathqd{P}_2)
-        \implies
-        (\mathqd{P}_2 \implies \mathqd{P}_1)$ \\
-        \hline
-        %
-        $\top$ & $\top$ & $\top$ & $\bot$ & $\top$ & $\top$
-      \end{tabular}
-    \end{center}
+        We draw a truth table, but only considering the cases where the
+        assumptions hold.
 
-  \item[Exercise \#10]
-    We annotate a proof in the natural deduction calculus with the names of the
-    inference rules used therein.
+        \begin{center}
+          \begin{tabular}{cc|cccc}
+            $\mathqd{P}_1$ &
+            $\mathqd{P}_2$ &
+            $\mathqd{P}_1 \implies \mathqd{P}_2$ &
+            $\neg(\mathqd{P}_1 \implies \mathqd{P}_2)$ &
+            $\mathqd{P}_2 \implies \mathqd{P}_1$ &
+            $\neg(\mathqd{P}_1 \implies \mathqd{P}_2)
+            \implies
+            (\mathqd{P}_2 \implies \mathqd{P}_1)$ \\
+            \hline
+            %
+            $\top$ & $\top$ & $\top$ & $\bot$ & $\top$ & $\top$
+          \end{tabular}
+        \end{center}
 
-    \begin{equation*}
-      \infer[\text{ex falso}]{
-        A \lor \neg A
-      }{
-        \infer[\neg\text{Elim}]{\bot}{
-          \infer{A \lor \neg A}{
-            \infer{\neg A}{
-              \infer{\bot}{
-                \infer{A \lor \neg A}{
-                  [A]
+      \item[Exercise \#10.]
+        We annotate a proof in the natural deduction calculus with the names of
+        the inference rules used therein.
+
+        \begin{equation*}
+          \infer[\text{RAA}_2]{
+            A \lor \neg A
+          }{
+            \infer[\neg \text{E}]{
+              \bot
+            }{
+              \infer[\lor \text{I}_r]{
+                A \lor \neg A
+              }{
+                \infer[\neg \text{I}_1]{
+                  \neg A
+                }{
+                  \infer[\neg \text{E}]{
+                    \bot
+                  }{
+                    \infer[\lor \text{I}_l]{
+                      A \lor \neg A
+                    }{
+                      [A]_1
+                    }
+                    &
+                    [\neg (A \lor \neg A)]_2
+                  }
                 }
+              }
+              &
+              [\neg(A \lor \neg A)]_2
+            }
+          }
+        \end{equation*}
+
+      \item[Exercise \#11.]
+        We prove that the law of excluded middle proves
+        \emph{reductio ad absurdum}.
+
+        \begin{equation*}
+          \infer[\lor \text{E}_1]{
+            A
+          }{
+            A \lor \neg A
+            &
+            [A]_1
+            &
+            \infer[\text{\emph{ex falso}}]{
+              A
+            }{
+              \infer[\implies \text{E}]{
+                \bot
+              }{
+                \neg A \implies \bot
                 &
-                [\neg(A \lor \neg A)]
+                [\neg A]_1
               }
             }
           }
-        }
-      }
-    \end{equation*}
-\end{description}
+        \end{equation*}
+
+        We encoded the notion that $\neg A \proves \bot$ as an implication,
+        although the proof would look pretty much the same if we had instead
+        said that we have a hypothetical derivation
+        $\mathcal{D} : \neg A \proves \bot$.
+
+      \item[Exercise \#13]
+        We annotate an axiomatic proof with the substitutions used by each
+        axiom schema.
+
+        \newcommand{\ann}[1]{\quad\text{#1}}
+
+        \begin{align*}
+          A % \land \neg A \implies A
+          &\ann{Ax6[$A/A, \neg A / B$]}
+          \\
+          A \land \neg A \implies \neg A
+          &\ann{Ax7[ $A/A, \neg A / B$ ]}
+          \\
+          (\neg A \implies A \implies B)
+          \implies
+          A \land \neg A
+          \implies \neg A \implies A \implies B
+          &\ann{Ax2[$\neg A \implies A \implies B / B, A \land \neg A / A$]}
+          \\
+          A \land \neg A \implies \neg A \implies A \implies B
+          &\ann{MP 3, 4}
+          \\
+          (A \land \neg A \implies \neg A \implies A \implies B)
+          \implies
+          (A \land \neg A \implies \neg A)
+          \implies
+          A \land \neg A
+          \implies
+          A
+          \implies
+          B
+          &\ann{Ax4[$A \land \neg A / A, \neg A / B, A \implies B / C$]}
+          \\
+          (A \land \neg A \implies \neg A)
+          \implies
+          A \land \neg A
+          \implies
+          A \implies B
+          &\ann{MP 5, 6}
+          \\
+          A \land \neg A \implies A \implies B
+          &\ann{MP 2,7}
+          \\
+          (A \land \neg A \implies A \implies B)
+          \implies
+          (A \land \neg A \implies A)
+          \implies
+          A \land \neg A
+          \implies B
+          &\ann{Ax4[$A \land \neg A / A, A / B, B / C$]}
+          \\
+          (A \land \neg A \implies A)
+          \implies
+          A \land \neg A
+          \implies
+          B
+          &\ann{MP 8, 9}
+          \\
+          A \land \neg A \implies B
+          &\ann{MP 1, 10}
+        \end{align*}
+    \end{description}
+
+  \item
+    We do an exercise from handout 2a.
+
+    \begin{description}
+      \item[Exercise \#2.]
+        \begin{description}
+          \item[Infix form.] $(P_1 \implies P_2) \land \neg P_3$
+          \item[Prefix form.] $\land \implies P_1 P_2 \neg P_3$
+          \item[Postfix form.] $P_1 P_2 \implies P_3 \neg \land$
+        \end{description}
+    \end{description}
+\end{enumerate}
 
 \section{Soundness and completeness}
 
@@ -158,5 +280,120 @@ Conversely, if we know that a particular formula is true, we would also like to
 be sure that there exists a proof for it. In other words, we don't want there
 to be any ``unattainable'' truths, that we cannot deduce. This property is
 \emph{completeness}.
+
+\section{Predicate logic}
+
+We do some exercises from handout 3.
+
+\begin{description}
+  \item[Exercise \#4.]
+    We want to find two structures and interpretations (for which the domain is
+    not numbers) so that $\forall x: x = 0$ is true, and two so that it is
+    false.
+
+    \begin{enumerate}
+      \item
+        If we pick a trivial universe of discourse $U = \{\text{Alice}\}$.
+        Then the statement is true.
+        The interpretation of the function symbols is fully determined by the
+        fact that the universe is a singleton.
+
+      \item
+        If we pick a universe of discourse with more than one element, then the
+        sentence becomes false.
+    \end{enumerate}
+
+  \item[Exercise \#5.]
+
+\end{description}
+
+\section{Free variables and substitution}
+
+\begin{enumerate}
+  \item
+    A \emph{free variable} is a variable that does not appear under the scope
+    of any \emph{binder}.
+    Formally, we can define the set of free variables $V(\phi)$ in a formula
+    $\phi$ inductively.
+    \begin{itemize}
+      \item
+        If $\phi = x$ is a variable, then $V(\phi) = \setof{x}$.
+
+      \item
+        $V(\forall x: \phi) = V(\phi) \setminus \{x\}$.
+
+      \item
+        Connectives preserve or union the set of free variables.
+    \end{itemize}
+
+  \item
+    A term may be substituted for a variable in a formula provided that
+    \begin{itemize}
+      \item the term contains no free variables that would become bound;
+    \end{itemize}
+\end{enumerate}
+
+\section{Formalization in first-order logic}
+
+We try to informally interpret two formal statements of TNT.
+
+\begin{itemize}
+  \item
+    $\neg \forall c : \exists b : SS0 \cdot b = c$
+
+    This essentially says ``odd numbers exist''.
+    (It is not the case that for every number, we can find another number whose
+    double gives us the first number.)
+
+  \item
+    $\forall c : \neg \exists b : 2 \cdot b = c$
+
+    This essentially says ``division by two is impossible''.
+    (For any number, you can't find a number whose double gives the first one.)
+\end{itemize}
+
+\section{A translation exercise}
+
+We translate some English statements of number theory into the language of
+first-order arithmetic.
+
+\begin{itemize}
+  \item
+    ``All natural numbers are equal to 4.''
+
+    $\forall n: x = 4$.
+
+  \item
+    ``Different natural numbers have different successors.''
+
+    $\forall n: \forall m: \neg(n = m) \implies \neg (S n = S m)$
+\end{itemize}
+
+\section{Predicate logic}
+
+The given deduction (purportedly) proves that ``if zero is equal to zero, then
+every number is equal to zero.''
+
+This is bogus. The given proof contains a scoping error; in particular, the
+assumption $x = 0$ introduced by the implication-introduction is discharged
+also by a for $\forall$-introduction.
+
+\section{$\omega$-incomplete}
+
+When considering a formal system, we call the set of all the theorems in the
+system the \emph{theory} of the system. The theorems are exactly the strings
+that can be produced by following the rules in the system. So we can think of
+the theory as being the set of all valid sentences in the language of the
+system.
+
+These sentences have a lot of structure.
+For example, we know that for any choice of $x$, we can show $0 + x = x$.
+But when I say ``for any choice of $x$'' I'm making a metalogical claim!
+Can we \emph{prove in the system} that this is indeed true?
+We have as an axiom of our system that $\forall a: (a + 0) = a$, so if we can
+prove commutativity, then we're done.
+Alas proving commutativity requires the use of induction.
+So if our system did not admit an induction rule, then we could not prove
+$\forall x: 0 + x = x$, and our system would be $\omega$-incomplete.
 
 \end{document}
