@@ -5,6 +5,11 @@
 \date{Monday, 23 October 2017}
 
 \usepackage[geometry]{jakemath}
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\footnotesize\ttfamily,
+}
 
 \begin{document}
 
@@ -57,5 +62,97 @@
     behaviour as a function is more complex near $x = 0$; it deviates quite a
     lot from the truth.
 \end{enumerate}
+
+\section{Cubic splines}
+
+See the code in appendix \ref{app:code} for the construction of the cubic
+splines.
+
+There is a problem in the code that we are unable to figure out.
+Our Gaussian elimination matrix solver is correct, and our construction of the
+cubic spline matrix is correct.
+The constants that we set each equation equal to in the matrix appear to be
+correct. However, the fitting parameters (the second derivatives) emitted by
+our code differ from the true second derivatives of $\sin {\pi x}$.
+
+Also, our third spline is bogus, and produces negative values.
+
+\section{Lagrange interpolation}
+
+Our data is the following.
+
+\begin{center}
+  \begin{tabular}{ccc}
+    $j$ & $x_j$ & $f_j$ \\ \hline
+    $1$ & $-1$ & $0$ \\
+    $2$ & $-\frac{1}{2}$ & $\frac{\sqrt{2}}{2}$ \\
+    $3$ & $\frac{1}{2}$ & $\frac{\sqrt{2}}{2}$ \\
+    $4$ & $1$ & $0$
+  \end{tabular}
+\end{center}
+
+We construct the functions $l_j(x)$.
+%
+\begin{align*}
+  l_1(x)
+  &= \frac{(x + 1)^3}{3/2} \\
+  %
+  l_2(x)
+  &= \frac{(x + 1/2)^3}{3/4} \\
+  %
+  l_3(x)
+  &= \frac{(x - 1/2)^3}{-3/4} \\
+  %
+  l_4(x)
+  &= \frac{(x - 1)^3}{3/2}
+\end{align*}
+%
+Then we define $L(x) = \sum_j f_j l_j(x)$.
+Since $f_0 = 0$ and $f_4 = 0$, we only have two nonzero terms.
+
+\newcommand{\uint}{\int_{-1}^1}
+Next we compute $\int_{-1}^1 f(x) \; dx$
+%
+\begin{align*}
+  \uint L(x) \; dx
+  &= f(-1) \uint \frac{(x + 1)^3}{3/2} \; dx
+  + f(-1/2) \uint \frac{(x + 1/2)^3}{3/4} \; dx
+  + f(1/2) \uint \frac{(x - 1/2)^3}{-3/4} \; dx
+  + f(1) \uint \frac{(x - 1^3}{3/2} \; dx
+  \\
+  &= f(-1) \frac{2}{3} \int_{-2}{0} u^3 \; du
+  + f(-1/2) \frac{4}{3} \int_{-1/2}^{3/2} u^3 \; du
+  + f(1/2) \frac{-4}{3} \int_{-3/2}^{1/2} u^3 \; du
+  + f(1) \frac{2}{3} \int_{0}^{2} u^3 \; du
+  \\
+  &= f(-1) \frac{1}{6} u^4 \evaluated[-2]{0}
+  + f(-1/2) \frac{1}{3} u^4 \evaluated[-1/2]{3/2}
+  -  f(1/2) \frac{1}{3} u^4 \evaluated[-3/2]{1/2}
+  + f(1) \frac{1}{6} u^4 \evaluated[0]{2}
+  \\
+  &= f(-1) \frac{16}{6}
+  + f(-1/2) \frac{1}{3} \cdot \frac{81 - 1}{16}
+  - f(1/2) \frac{1}{3} \cdot \frac{1 - 81}{16}
+  + f(1) \frac{-16}{6} \\
+  &= f(-1) \frac{16}{6}
+  + f(-1/2) \frac{5}{3}
+  + f(1/2) \frac{5}{3}
+  - f(1) \frac{16}{6}
+\end{align*}
+
+\section{Numerical integration}
+
+Note that from $0$ to $2$, the sine wave in $f$ makes one full revolution, so
+its integral over that region is zero.
+Therefore, to get the highest precision, we can replace the sine with a
+straight line: take $x_0 = 0$ and $x_1 = 2$, and choose $c$ arbitrarily. This
+gives $0 + 0 = 0$, which is in fact exact.
+
+\appendix
+
+\section{Code}
+\label{app:code}
+
+\lstinputlisting{a21.hs}
 
 \end{document}
