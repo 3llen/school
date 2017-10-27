@@ -1,0 +1,158 @@
+\documentclass[11pt,letterpaper]{article}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#3\\Language-based security -- COMP 523}
+\date{Thursday, 2 November 2017}
+
+\usepackage[geometry]{jakemath}
+\renewcommand{\R}{\mathcal{R}}
+
+\newcommand{\bool}{\mathtt{bool}}
+\newcommand{\True}{\mathtt{true}}
+\newcommand{\False}{\mathtt{false}}
+\newcommand{\ifthenelse}[3]{%
+  \mathtt{if}\;#1\;\mathtt{then}\;#2\;\mathtt{else}\;#3%
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Weak normalization}
+
+\begin{enumerate}
+  \item
+    We define the reducibility relation for booleans similarly as for unit,
+
+    \begin{equation*}
+      t \in \R_{\bool} \quad\text{if $t$ halts}
+    \end{equation*}
+
+  \item
+    We extend the backwards closure lemma for booleans.
+
+    \begin{lem}[Backwards closure]
+      If $t \evalto t^\prime$ and $t^\prime \in \R_T$, then $t \in \R_T$.
+    \end{lem}
+
+    \begin{proof}
+      By induction on the type $T$.
+      %
+      \begin{description}
+        \item[Case] $T = \bool$.
+
+          We know that $t^\prime \in \R_\bool$ by assumption.
+          Hence there exists a value $v$ such that $t^\prime \evalto^* v$,
+          since $t^\prime$ halts.
+          By the definition of the multistep evaluation,
+          we deduce that $t \evalto^* v$ as well.
+          Therefore by definition $t$ halts and $t \in \R_\bool$.
+      \end{description}
+    \end{proof}
+
+  \item
+    We extend the main lemma for booleans.
+
+    \begin{lem}[Main lemma]
+      If $\Gamma \proves t \hastype T$
+      and $\sigma \in \R_\Gamma$,
+      then $[\sigma]t \in \R_T$.
+    \end{lem}
+
+    \begin{proof}
+      By induction on the typing derivation
+      $\mathcal{D} : \Gamma \proves t \hastype T$.
+      %
+      \begin{description}
+        \item[Case] $\mathcal{D}$ is of the form
+          \begin{equation*}
+            \infer{\Gamma \proves \True \hastype \bool}{}
+          \end{equation*}
+          %
+          Notice that $\True$ is already a value, so it halts by reflexivity
+          rule of multistep evaluation. Therefore $\True \in \R_\bool$.
+          Finally, substitution does not affect values,
+          so $[\sigma]\True \in \R_\bool$ as required.
+
+        \item[Case] for $\False$ follows the same argument.
+
+        \item[Case] $\mathcal{D}$ is of the form
+          \begin{equation*}
+            \infer{%
+              \Gamma \proves \ifthenelse{t}{s_1}{s_2} \hastype S%
+            }{%
+              \deduce[\mathcal{D}^\prime]{\Gamma \proves t \hastype \bool}{}
+              &
+              \deduce[\mathcal{D}_1]{\Gamma \proves s_1 \hastype S}{}
+              &
+              \deduce[\mathcal{D}_2]{\Gamma \proves s_2 \hastype S}{}
+            }
+          \end{equation*}
+          %
+          % WTS: [sigma](if t then s1 else s2) in R_S
+          %
+          By the induction hypothesis applied to $\mathcal{D}^\prime$,
+          we deduce that $[\sigma]t \in \R_\bool$.
+          By definition of $\R_\bool$, we have that $[\sigma]t$ halts, so
+          there exists a value $v$ such that $[\sigma]t \evalto^* v$.
+          By type preservation, $\Gamma \proves v \hastype \bool$.
+          Now we analyze $v$, for which there are only two cases having the
+          correct type.
+          %
+          \begin{description}
+            \item[Subcase] $v = \True$.
+
+              By the induction hypothesis applied to $\mathcal{D}_1$,
+              we deduce that $[\sigma]s_1 \in \R_S$.
+              We have the evaluation rule
+              $\ifthenelse{\True}{[\sigma]s_1}{[\sigma]s_2} \evalto [\sigma]s_1$,
+              so by the Backwards Closure Lemma,
+              we deduce that
+              $\ifthenelse{\True}{[\sigma]s_1}{[\sigma]s_2} \in \R_S$.
+
+            \item[Subcase] $v = \False$ follows the same argument, except that
+              we pick the other basic evaluation rule for $\mathtt{if}$.
+          \end{description}
+          %
+          Now we have that
+          $\ifthenelse{v}{[\sigma]s_1}{[\sigma]s_2} \in \R_S$.
+
+          We assume the following congruence lemma.
+          %
+          \begin{quote}
+            if $t \evalto^* t^\prime$, then
+            $\ifthenelse{t}{s_1}{s_2}
+            \evalto^* \ifthenelse{t^\prime}{s_2}{s_2}$.
+          \end{quote}
+
+          By this congruence lemma we deduce that
+          \begin{equation*}
+            \ifthenelse{[\sigma]t}{[\sigma]s_1}{[\sigma]s_2]}
+            \evalto^*
+            \ifthenelse{v}{[\sigma]s_1}{[\sigma]s_2}
+          \end{equation*}
+
+          We assume the following Extended Backwards Closure lemma:
+          \begin{quote}
+            if $t \evalto^* t^\prime$ and $t^\prime \in \R_T$,
+            then $t \in \R_T$.
+          \end{quote}
+
+          By the Extended Backwards Closure lemma, we deduce that
+          \begin{equation*}
+            \ifthenelse{[\sigma]t}{[\sigma]s_1}{[\sigma]s_2} \in \R_S
+          \end{equation*}
+
+          Finally, by the definition of substitution, we factor out $\sigma$
+          to deduce that
+          %
+          \begin{equation*}
+            [\sigma](\ifthenelse{t}{s_1}{s_2}) \in \R_S
+          \end{equation*}
+          %
+          as required.
+      \end{description}
+    \end{proof}
+\end{enumerate}
+
+\end{document}
