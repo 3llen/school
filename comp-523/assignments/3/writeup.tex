@@ -95,9 +95,17 @@
           we deduce that $[\sigma]t \in \R_\bool$.
           By definition of $\R_\bool$, we have that $[\sigma]t$ halts, so
           there exists a value $v$ such that $[\sigma]t \evalto^* v$.
-          By type preservation, $\Gamma \proves v \hastype \bool$.
+          By (Extended) Type Preservation\footnotemark,
+          $\Gamma \proves v \hastype \bool$.
           Now we analyze $v$, for which there are only two cases having the
           correct type.
+          %
+          \footnotetext{%
+            By ``extended'' we mean that we generalize the theorem to work on
+            multistep evaluation. This is easy to prove: if you can take one
+            step preserving types, then of course you can take $n$ steps
+            preserving types.
+          }
           %
           \begin{description}
             \item[Subcase] $v = \True$.
@@ -154,5 +162,237 @@
       \end{description}
     \end{proof}
 \end{enumerate}
+
+\section{Type safety using logical relations}
+
+\newcommand{\safe}{\ensuremath{\;\text{safe}}}
+
+\begin{thm}[Type safety]
+  If $\proves t \hastype T$, then $t \safe$.
+\end{thm}
+
+\begin{proof}
+  Suppose $\proves t \hastype T$.
+  Take an arbitrary $s$ and suppose $t \evalto^* s$.
+  By (Extended) Type Preservation,
+  we deduce that $\proves s \hastype T$.
+  By Progress,
+  either $s$ is a value
+  or there exists $s^\prime$ such that $s \evalto s^\prime$.
+\end{proof}
+
+\renewcommand{\S}{\mathcal{S}}
+\renewcommand{\V}{\mathcal{V}}
+
+\begin{prop}
+  If $t \in \S_T$, then $t \safe$.
+\end{prop}
+
+\begin{proof}
+  Suppose $t \in \S_T$, i.e. for all $s$, if $t \evalto^* s$ and $s$ is
+  irreducible, then $s \in \V_T$.
+  We want to show that for all $s$, if $t \evalto^* s$, then either $s$ is a
+  value or there exists $s^\prime$ so that $s \evalto s^\prime$.
+
+  Take arbitrary $s$ and suppose $t \evalto^* s$.
+  We deduce that if $s$ is irreducible, then $s \in \V_T$.
+  We want to show that either $s$ is a value or there exists $s^\prime$ so that
+  $s \evalto s^\prime$.
+  We analyze whether $s$ is irreducible.
+  \begin{description}
+    \item[Case] $s$ is irreducible.
+      Then we deduce that $s \in \V_T$.
+      By definition, the possible elements of $\V_T$ are the booleans $\true$
+      and $\false$ and the lambda abstractions.
+      By definition, these terms are values, so we're done.
+    \item[Case] $s$ is not irreducible.
+      Then there exists $s^\prime$ so that $s \evalto s^\prime$, so we're done.
+  \end{description}
+\end{proof}
+
+Next we define a notion of safe substitutions.
+Intuitively, a substitution $\sigma$ is safe for a context $\Gamma$ if it sends
+each variable to a safe expression.
+We formalize this inductively.
+\newcommand{\safefor}{\;\text{safe for}\;}
+%
+\begin{equation*}
+  \infer{\cdot \safefor \cdot}{}
+  \quad
+  \infer{(\sigma, v/x) \safefor \Gamma, x:T}{
+    \sigma \safefor \Gamma
+    &
+    v \in \V_T
+  }
+\end{equation*}
+
+\begin{prop}
+  If $\Gamma \proves t \hastype T$ and $\sigma \safefor \Gamma$,
+  then $[\sigma]t \in \S_T$.
+\end{prop}
+
+\begin{proof}
+  By induction on $\mathcal{D} : \Gamma \proves t \hastype T$.
+  %
+  \begin{description}
+    \item[Case] $\mathcal{D}$ is of the form
+      \begin{equation*}
+        \infer{\Gamma \proves \true \hastype T}{}
+      \end{equation*}
+
+      By assumption we have $\sigma \safefor \Gamma$.
+      We want to show that $[\sigma]\true \in \S_\bool$.
+
+      Take arbitrary $s$ and suppose both that $\true \evalto^* s$ and that
+      $s$ is irreducible.
+      Note that by value soundness $s = \true$.
+      By definition of $\V_\bool$, we have that $s \in \V_\bool$.
+      Therefore $\true \in \S_\bool$, as required.
+
+    \item[Case] for $\Gamma \proves \false \hastype \bool$ is the same.
+
+    \item[Case] $\mathcal{D}$ is of the form
+      %
+      \renewcommand{\t}{\ensuremath{\lambda x \hastype S . t}}
+      \begin{equation*}
+        \infer{\Gamma \proves \t \hastype S \to T}{
+          \deduce[\mathcal{D}^\prime]{
+            \Gamma, x \hastype S \proves t \hastype T
+          }{}
+        }
+      \end{equation*}
+
+      By assumption we have $\sigma \safefor \Gamma$.
+      We want to show that
+      $[\sigma](\t) \in \S_{S \to T}$.
+
+      Take arbitrary $s$ and suppose both that $[\sigma](\t) \evalto^* s$ and
+      that $s$ is irreducible.
+      Applying a substitution to an abstraction still gives an abstraction, so
+      we deduce that $s = [\sigma](\t)$ by value soundness.
+      Now we need to show that $s \in \V_{S \to T}$.
+      Take arbitrary $v \in \V_S$.
+      Define $\sigma^\prime = (\sigma, v/x)$.
+      Notice that $\sigma^\prime \safefor \Gamma, x \hastype S$.
+      We invoke the induction hypothesis on $\mathcal{D}^\prime$ and
+      $\sigma^\prime$ to deduce $[\sigma^\prime]t \in \S_T$.
+      We expand $\sigma^\prime$ to get that $[v/x][\sigma]t \in \S_T$.
+      We deduce that $(\lambda x \hastype S. [\sigma]t) \in \V_{S \to T}$.
+      By definition of $\sigma$ we hoist it out of the $\lambda$ to get
+      $[\sigma](\t) \in \V_{S \to T}$.
+      Since $[\sigma](\t) = s$, we rewrite as $s \in \V_{S \to T}$,
+      as required.
+      We deduce that $[\sigma](\t) \in \S_{S \to T}$, as required.
+
+    \item[Case] $\mathcal{D}$ is of the form
+      \begin{equation*}
+        \infer{\Gamma \proves t s \hastype T}{
+          \Gamma \proves t \hastype S \to T
+          &
+          \Gamma \proves s \hastype S
+        }
+      \end{equation*}
+
+      By assumption, we have $\sigma \safefor \Gamma$.
+      By the induction hypothesis we immediately deduce that
+      $[\sigma]t \in \S_{S \to T}$ and $[\sigma]s \in \S_S$.
+
+      Take arbitrary $k$ and suppose $[\sigma]t [\sigma]s \evalto^* k$ and $k$
+      is irreducible.
+      We want to show that $k \in \V_T$.
+
+      By lemma \ref{lem:midway-reducible-1} we deduce that there exists some
+      irreducible $u$ such that
+      $[\sigma]t [\sigma]s \evalto^* [\sigma]t u \evalto^* k$.
+      It's clear that from this derivation we can extract a derivation that
+      $[\sigma]s \evalto^* u$.
+      Since $[\sigma]s \in \S_S$, we deduce that $u \in \V_S$.
+
+      By lemma \ref{lem:midway-reducible-2} we deduce that there exists some
+      irreducible $v$ such that
+      $[\sigma]t u \evalto^* v u \evalto^* k$.
+      Again we can extract a derivation that $[\sigma]t \evalto^* v$.
+      Since $[\sigma]t \in \S_{S \to T}$, we deduce that $v \in \V_{S \to T}$.
+
+      By a canonical form argument,
+      we deduce that $v$ is of the form $\lambda x \hastype S. b$
+      Therefore the next step in $v u \evalto^* k$ must be a $\beta$ rule, so
+      $v u \evalto [u/x]b \evalto^* k$.
+
+      Note that since $\lambda x \hastype S.b \in \V_{S \to T}$
+      and $u \in \V_S$,
+      we deduce that $[u/x]b \in \S_T$.
+      Since $[u/x]b \evalto^* k$ and $k$ is irreducible, we deduce that
+      $k \in \V_T$, as required.
+  \end{description}
+
+\end{proof}
+
+\begin{lem}
+  \label{lem:midway-reducible-1}
+  Suppose $t s \evalto^* u$ and $u$ is irreducible.
+  Then there exists some $v$ that is irreducible such that
+  $t s \evalto^* t v \evalto^* u$.
+\end{lem}
+
+\begin{proof}
+  By induction on $\mathcal{D} : t s \evalto^* u$.
+
+  \begin{description}
+    \item[Case] $s$ is irreducible.
+
+      Then we're done because $s$ is the irreducible $v$ we were looking
+      for and $t s \evalto^* t s \evalto^* u$.
+
+    \item[Subcase] $s^\prime$ is not irreducible.
+
+      Then we analyze $\mathcal{D}$.
+      Since $t s$ is not irreducible, the reflexive case is impossible, so we
+      have only the single-step case, and the only single-step rule that could
+      apply is the second congruence rule for applications.
+      Therefore there exists some $s^\prime$ such that $t s \evalto t s^\prime$
+      and we have a smaller derivation $\mathcal{D}^\prime : t s^\prime
+      \evalto^* u$.
+
+      By the induction hypothesis on $\mathcal{D}^\prime$, we deduce that there
+      exists some $v$ that is irreducible such that $t s^\prime \evalto^* t v
+      \evalto^* u$.
+      Since $t s \evalto t s^\prime \evalto^* t v \evalto^* u$,
+      we conclude that $t s \evalto^* t v \evalto^* u$, as required.
+  \end{description}
+\end{proof}
+
+\begin{lem}
+  \label{lem:midway-reducible-2}
+  Suppose $t v \evalto^* u$ and $u$ and $v$ are irreducible.
+  Then there exists some $f$ that is irreducible such that
+  $t v \evalto^* f v \evalto^* u$.
+\end{lem}
+
+\begin{proof}
+  By induction on $\mathcal{D} : t v \evalto^* u$.
+
+  \begin{description}
+    \item[Case] $t$ is irreducible.
+
+      Then we're done because $t$ is the irreducible $f$ we were looking for
+      and $t v \evalto^* f v \evalto^* u$.
+
+    \item[Case] $t$ is not irreducible.
+
+      Then since $t v$ is not irreducible, the only applicable case for
+      $\mathcal{D}$ is the single-step rule, and the only applicable
+      single-step rule is the first congruence rule for applications.
+      Therefore ther exists some $t^\prime$ such that $t v \evalto t^\prime v$
+      and we have a smaller derivation
+      $\mathcal{D}^\prime : t^\prime v \evalto^* u$.
+
+      By the induction hypothesis on $\mathcal{D}^\prime$, we deduce that there
+      exists some $f$ that is irreducible such that
+      $t^\prime v \evalto^* f v \evalto^* u$.
+      We stitch back on the step $t v \evalto t^\prime v$ to deduce that
+      $t v \evalto^* f v \evalto u$ as required.
+  \end{description}
+\end{proof}
 
 \end{document}
