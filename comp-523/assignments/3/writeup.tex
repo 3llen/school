@@ -7,6 +7,7 @@
 \usepackage[geometry]{jakemath}
 \renewcommand{\R}{\mathcal{R}}
 
+\newcommand{\fst}{\operatorname{\mathtt{fst}}}
 \newcommand{\bool}{\mathtt{bool}}
 \newcommand{\True}{\mathtt{true}}
 \newcommand{\False}{\mathtt{false}}
@@ -252,6 +253,22 @@ We formalize this inductively.
     \item[Case] for $\Gamma \proves \false \hastype \bool$ is the same.
 
     \item[Case] $\mathcal{D}$ is of the form
+      \begin{equation*}
+        \infer{\Gamma \proves x \hastype S}{x \hastype T \in \Gamma}
+      \end{equation*}
+
+      We want to show that $[\sigma]x \in \S_T$.
+      Take arbitrary $s$ and suppose $[\sigma]x \evalto^* s$
+      and $s$ is irreducible.
+      We want to show that $s \in \V_T$.
+      There are no reduction rules for variables, so $s = x$ and our goal
+      becomes to show that $[\sigma]x \in \V_T$.
+
+      By assumption we have that $\sigma \safefor \Gamma$.
+      Since $x \hastype T \in \Gamma$, we know that $x$ is in the domain of
+      $\sigma$, so let $[\sigma]x = v \in \V_T$.
+
+    \item[Case] $\mathcal{D}$ is of the form
       %
       \renewcommand{\t}{\ensuremath{\lambda x \hastype S . t}}
       \begin{equation*}
@@ -323,10 +340,174 @@ We formalize this inductively.
       and $u \in \V_S$,
       we deduce that $[u/x]b \in \S_T$.
       Since $[u/x]b \evalto^* k$ and $k$ is irreducible, we deduce that
-      $k \in \V_T$, as required.
-  \end{description}
+      $k \in \V_T$.
+      We finally deduce that $[\sigma](t s) \in \S_T$ as required.
 
+    \item[Case] $\mathcal{D}$ is of the form
+      %
+      \renewcommand{\t}{\ensuremath{\ifthenelse{t}{s_1}{s_2}}}
+      \newcommand{\tp}{\ensuremath{\ifthenelse{t^\prime}{[\sigma]s_1}{[\sigma]s_2}}}
+      \begin{equation*}
+        \infer{\Gamma \proves \t \hastype S}{
+          \Gamma \proves t \hastype \bool
+          &
+          \Gamma \proves s_1 \hastype S
+          &
+          \Gamma \proves s_2 \hastype S
+        }
+      \end{equation*}
+
+      By assumption we have $\sigma \safefor \Gamma$.
+      By the induction hypothesis we immediately deduce that
+      $[\sigma] t \in \S_\bool$,
+      $[\sigma] s_1 \in \S_S$,
+      and $[\sigma]s_2 \in \S_S$.
+
+      We want to show that $[\sigma](\t) \in \S_S$.
+
+      Take arbitrary $s$ and suppose that $[\sigma](\t) \evalto^* s$ and $s$ is
+      irreducible.
+      By the definition of substitution,
+      we deduce that
+      $\ifthenelse{[\sigma]t}{[\sigma]s_1}{[\sigma]s_2} \evalto^* s$.
+      We want to show that $s \in \V_S$.
+      Then by a lemma like \ref{lem:midway-reducible-1}\footnotemark,
+      deduce that
+      $\ifthenelse{[\sigma]t}{[\sigma]s_1}{[\sigma]s_2}
+      \evalto^* \tp
+      \evalto^* s$ and $t^\prime$ is irreducible.
+      From this extract a derivation that $t \evalto^* t^\prime$.
+      By definition of $[\sigma] t \in \S_\bool$,
+      deduce that $t^\prime \in \V_\bool$.
+      By definition of $t^\prime \in \V_\bool$,
+      we deduce that $t^\prime \in \{\true, \false\}$.
+      %
+      \footnotetext{%
+        If $\t \evalto^* s$ and $s$ is irreducible,
+        then there exists some $t^\prime$ that is irreducible such that
+        $\t \evalto^* \tp \evalto^* s$.
+        This is easy to show, much like the other lemmas.
+      }
+      %
+      \begin{description}
+        \item[Subcase] $t^\prime = \true$.
+
+          Then the next step in the evaluation
+          $\ifthenelse{t^\prime}{[\sigma]s_1}{[\sigma]s_2} \evalto^* s$ must be
+          \begin{equation*}
+            \tp \evalto [\sigma]s_1
+          \end{equation*}
+          and $[\sigma]s_1 \evalto^* s$.
+          By definition of $[\sigma] s_1 \in \S_S$,
+          deduce that $s \in \V_S$, as required.
+
+        \item[Subcase] $t^\prime = \false$ is basically the same.
+      \end{description}
+      %
+      Therefore $\ifthenelse{[\sigma]t}{[\sigma]s_1}{[\sigma]s_2} \in \S_S$.
+      By the definition of substitution, we hoist out $\sigma$ to get
+      $[\sigma](\t) \in \S_S$ as required.
+  \end{description}
 \end{proof}
+
+We extend our definition of safe values to include products.
+We say that a product of two terms is a safe value if both terms are themselves
+safe values.
+Formally,
+%
+\begin{equation*}
+  \infer{(v_1, v_2) \in \V_{T_1 \times T_2}}{
+    v_1 \in \V_{T_1}
+    &
+    v_2 \in \V_{T_2}
+  }
+\end{equation*}
+
+Next we extend the proof of type preservation using logical relations to
+include products.
+
+\begin{proof}
+  \begin{description}
+    \item[Case] $\mathcal{D}$ is of the form
+      %
+      \begin{equation*}
+        \infer{\Gamma \proves (t_1, t_2) \hastype T_1 \times T_2}{
+          \Gamma \proves t_1 \hastype T_1
+          &
+          \Gamma \proves t_2 \hastype T_2
+        }
+      \end{equation*}
+      %
+      \newcommand{\s}{\ensuremath{[\sigma]}}
+
+      We want to show that $\s (t_1, t_2) \in \S_{T_1 \times T_2}$.
+      Take arbitrary $s$ and suppose $\s (t_1, t_2) \evalto^* s$ and $s$ is
+      irreducible.
+      We want to show that $s \in \V_{T_1 \times T_2}$.
+
+      We immediately deduce from the induction hypothesis that
+      $\s t_1 \in \S_{T_1}$ and $\s t_2 \in \S_{T_2}$.
+
+      By a lemma\footnotemark,
+      deduce that $\s (t_1, t_2) \evalto^* (v_1, t_2) \evalto^* s$ and $v_1$ is
+      irreducible.
+      (Note that $\s (t_1, t_2) = (\s t_1, \s t_2)$ by the definition of
+      substitution applied to a pair.)
+      Extract from this (by another lemma) a derivation that
+      $\s t_1 \evalto^* v_1$.
+      From the fact that $\s t_1 \in \S_{T_1}$,
+      deduce that $v_1 \in \V_{T_1}$.
+
+      Next by a similar lemma,
+      deduce that $(v_1, \s t_2) \evalto^* (v_1, v_2) \evalto^* s$ and $v_2$ is
+      irreducible.
+      Extract from this (by another lemma) a derivation that
+      $\s t_2 \evalto v_2$.
+      From the fact that $\s t_2 \in \S_{T_2}$,
+      deduce that $v_2 \in \V_{T_2}$.
+
+      Note that since $(v_1, v_2)$ is a pair of irreducible values that it is
+      itself irreducible. So the derivation $(v_1, v_2) \evalto^* s$ must be
+      constructed from the reflexivity rule. Hence $(v_1, v_2) = s$.
+      Note that $s = (v_1, v_2) \in \V_{T_1 \times T_2}$, as required.
+
+    \item[Case] $\mathcal{D}$ is of the form
+      %
+      \begin{equation*}
+        \infer{\Gamma \proves \fst t \hastype T}{
+          \Gamma \proves t \hastype T \times S
+        }
+      \end{equation*}
+      %
+      %\renewcommand{\s}{\ensuremath{[\sigma]}}
+
+      We want to show that $\s \fst t \in \S_T$.
+      Take arbitrary $s$ and suppose that $\s \fst t \evalto^* s$ and $s$ is
+      irreducible.
+      We want to show that $s \in \V_T$.
+
+      By the induction hypothesis, we deduce that $\s t \in \S_{T \times S}$.
+      By a lemma, deduce that $\fst \s t \evalto^* \fst v \evalto^* s$ and $v$ is
+      irreducible.
+      Deduce by another lemma that $\s t \evalto^* v$.
+      From the fact that $\s t \in \S_{T \times S}$,
+      deduce that $v \in \V_{T \times S}$.
+      The only elements of $\V_{T \times S}$ are pairs, so we deduce
+      that $v = (v_1, v_2)$ for $v_1 \in \V_T$ and $v_2 \in \V_S$.
+      Therefore we have a derivation that $\fst (v_1, v_2) \evalto^* s$.
+      By determinacy of evaluation, the next step in this derivation must be
+      $\fst (v_1, v_2) \evalto v_1 \evalto^* s$.
+      Since $v_1$ is irreducible, we deduce that $v_1 = s$.
+      Since $s = v_1 \in \V_T$, we're done.
+
+    \item[Case] for the second component of the pair follows the same structure
+      as for $\fst$.
+  \end{description}
+\end{proof}
+
+
+\appendix
+\section{Lemmas}
 
 \begin{lem}
   \label{lem:midway-reducible-1}
@@ -337,6 +518,7 @@ We formalize this inductively.
 
 \begin{proof}
   By induction on $\mathcal{D} : t s \evalto^* u$.
+  We first proceed by checking whether $s$ is irreducible.
 
   \begin{description}
     \item[Case] $s$ is irreducible.
@@ -344,7 +526,7 @@ We formalize this inductively.
       Then we're done because $s$ is the irreducible $v$ we were looking
       for and $t s \evalto^* t s \evalto^* u$.
 
-    \item[Subcase] $s^\prime$ is not irreducible.
+    \item[Case] $s^\prime$ is not irreducible.
 
       Then we analyze $\mathcal{D}$.
       Since $t s$ is not irreducible, the reflexive case is impossible, so we
