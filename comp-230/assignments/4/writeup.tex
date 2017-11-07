@@ -1,0 +1,110 @@
+\documentclass[11pt,letterpaper]{article}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#4\\Logic and computability -- COMP 230}
+\date{7 November 2017}
+
+\usepackage[utf8]{inputenc}
+\usepackage[geometry]{jakemath}
+
+\begin{document}
+
+\maketitle
+
+\section{Typographical and arithmetical rules}
+
+A typographical rule is an operation that we perform on a \emph{symbol} or
+sequence thereof. For instance, a typographical rule might say \emph{if we have
+any numeral, say $x$, that contains a nonzero digit, then we can obtain a
+numeral of the form $x0$}.
+This typographical rule doesn't say anything about the numerical \emph{value}
+of the numeral: we call such a value a \emph{number}.
+An arithmetical rule, in contrast, refers to a transformation of a number, and
+therefore would not talk about ``adding a zero'' but would instead talk about
+the \emph{interpretation} of such a typographical operation.
+In this case, the interpretation of adding a zero on the end is multiplying by
+ten.
+So the corresponding arithmetical rule for the typographical rule we gave
+earlier would be \emph{any nonzero number may be multiplied by ten}.
+
+What Hofstadter means by ``typographical rules for manipulating numerals are
+actually arithmetical rules for operating on numbers'' is that any
+typographical rule can be \emph{interpreted} (in a natural way) as an
+arithmetical rule operating on the \emph{number} associated with the numeral'.
+
+\section{Gödel numbering}
+
+\begin{enumerate}
+  \item
+    The Gödel number of the formula $0 = 0$ according to the GEB scheme is
+    $666111666$.
+
+  \item
+    This question just involves looking up a translation, so I won't do it.
+
+  \item
+    Here is a rendition of
+    $\forall a: 0 \neq S a$, i.e. ``zero is the successor of no number'',
+    in TNT:
+    \begin{equation*}
+      626,262,636,223,362,666,111,123,262
+    \end{equation*}
+\end{enumerate}
+
+\section{TNT numbers}
+
+\begin{enumerate}
+  \item
+    The mapping from TNT sentences to natural numbers is a function.
+    In particular it is injective, but not surjective.
+    This is clear: $0$, for example, has no corresponding TNT sentence.
+    However, if two TNT numbers are equal, then they must come from the same
+    formula.
+
+  \item
+    The set of Gödel numbers of well-formed formulas in first-order arithmetic
+    is decidable.
+    Just as it is possible to parse a string in first-order arithmetic, it is
+    possible parse a numeral corresponding to such a string.
+    The difference is that the terminals to parse are now three-digit codons.
+
+    Another way to view this is to transform the numeral back to FOA and parse
+    that instead. If any step of the transformation fails, then the string is
+    not well-formed. The steps would be to divide the numeral into groups of
+    three, and map each resulting codon backwards using the table.
+
+  \item
+    The TNT numbers are recursively enumerable because they are in bijection
+    with the theorems of first-order arithmetic, and the theorems of
+    first-order arithmetic are recursively enumerable.
+
+  \item
+    The set of Gödel numbers of theorems of first-order arithmetic is not
+    decidable.
+    Again due to the bijectivity, if we could decide the set of the Gödel
+    numbers, then we could decide the set of theorems, and we know that the set
+    of theorems of FOA is undecidable, so this is a contradiction.
+\end{enumerate}
+
+\section{History}
+
+\begin{enumerate}
+  \item
+    This question was asked in a previous assignment.
+
+  \item
+    Hilbert's Program, broadly speaking, was to ``prove all things''.
+    Mathematics was to be established as a sound, complete, and decidable
+    formal system.
+    Concretely, any proof obtained in the system would be a true mathematical
+    statement, and every true mathematical statement could be provable in the
+    system.
+    Furthermore, every statement of mathematics would be decidable if this
+    program were successful.
+
+    Gödel's first incompletenes theorem killed Hilbert's Program when it
+    established that no system stronger than number theory could be both sound
+    and complete.
+\end{enumerate}
+
+\end{document}
