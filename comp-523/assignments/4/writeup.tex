@@ -243,4 +243,196 @@
     \end{proof}
 \end{enumerate}
 
+\section{Bidirectional typing}
+
+\begin{prop}[Soundness]
+  If $\Gamma \proves M \checks A$, then $\Gamma \proves M \hastype A$.
+\end{prop}
+
+\begin{proof}
+  By induction on the typing derivation
+  $\mathcal{D} : \Gamma \proves M \sim A$ where $\sim$ is either
+  $\checks$ or $\synth$.
+
+  \begin{description}
+    \item[Case]
+      $\mathcal{D}$ is of the form
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves \lambda x. M \checks A \to B
+        }{
+          \deduce[\mathcal{D}^\prime]{
+            \Gamma, x\hastype A \proves M \checks B
+          }{}
+        }
+      \end{equation*}
+
+      By the induction hypothesis on $\mathcal{D}^\prime$,
+      we deduce
+      $\mathcal{E}^\prime : \Gamma, x\hastype A \proves M \hastype B$.
+      We finish the case by constructing $\mathcal{E}$ as follows.
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves \lambda x. M \hastype A \to B
+        }{
+          \deduce[\mathcal{E}^\prime]{
+            \Gamma, x\hastype A \proves M \hastype B
+          }{}
+        }
+      \end{equation*}
+
+    \item[Case]
+      $\mathcal{D}$ is of the form
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves R \checks P
+        }{
+          \deduce[\mathcal{D}^\prime]{\Gamma \proves R \synth P^\prime}{}
+          &
+          \deduce[\mathcal{D}_1]{P = P^\prime}{}
+        }
+      \end{equation*}
+
+      By the induction hypothesis on $\mathcal{D}^\prime$ we obtain
+      $\mathcal{E}^\prime : \Gamma \proves R \hastype P^\prime$.
+      We rewrite the type using the equality proof $\mathcal{D}_1$ to obtain
+      $\mathcal{E} : \Gamma \proves R \hastype P$.
+  \end{description}
+
+  The other cases follow the same structure of applying the induction
+  hypothesis and repackaging.
+\end{proof}
+
+\begin{prop}[Completeness]
+  If $\Gamma \proves t \hastype A$ then $\Gamma \proves \tilde t \checks A$
+  where $\tilde t$ is obtained from $t$ by possibly adding type annotations to
+  subterms.
+\end{prop}
+
+\begin{proof}
+  By induction on the typing derivation
+  $\mathcal{D} : \Gamma \proves t \hastype A$.
+  %
+  \begin{description}
+    \item[Case]
+      $\mathcal{D}$ is of the form
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves M N \hastype B
+        }{
+          \deduce[\mathcal{D}_1]{\Gamma \proves M \hastype A \to B}{}
+          &
+          \deduce[\mathcal{D}_2]{\Gamma \proves N \hastype A}{}
+        }
+      \end{equation*}
+
+      By the induction hypothesis respectively on $\mathcal{D}_1$ and on
+      $\mathcal{D}_2$,
+      deduce $\mathcal{E}_1 : \Gamma \proves \tilde M \checks A \to B$
+      and $\mathcal{E}_2 : \Gamma \proves \tilde N \checks A$.
+
+      Construct the derivation $\mathcal{E}$ as follows.
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves (\tilde M \hastype A \to B) \tilde N \synth B
+        }{
+          \infer{
+            \Gamma \proves (\tilde M \hastype A \to B) \synth A \to B
+          }{
+            \deduce[\mathcal{E}_1]{\Gamma \proves \tilde M \checks A \to B}{}
+          }
+          &
+          \deduce[\mathcal{E}_2]{\Gamma \proves \tilde N \checks A}{}
+        }
+      \end{equation*}
+
+    \item[Case]
+      $\mathcal{D}$ is of the form
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves \fst M \hastype A
+        }{
+          \deduce[\mathcal{D}^\prime]{\Gamma \proves M \hastype A \times B}{}
+        }
+      \end{equation*}
+
+      By the induction hypothesis on $\mathcal{D}^\prime$
+      deduce $\mathcal{E}^\prime : \Gamma \proves \tilde M \checks A \times B$.
+      Construct the derivation $\mathcal{E}$ as follows.
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves \fst (\tilde M \hastype A \times B) \synth A
+        }{
+          \infer{
+            \Gamma \proves (\tilde M \hastype A \times B) \synth A \times B
+          }{
+            \deduce[\mathcal{E}^\prime]{
+              \Gamma \proves \tilde M \checks A \times B
+            }{}
+          }
+        }
+      \end{equation*}
+
+    \item[Case]
+      for $\snd$ follows the same argument.
+
+    \item[Case]
+      $\mathcal{D}$ is of the form
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves \lambda x. M \hastype A \to B
+        }{
+          \deduce[\mathcal{D}^\prime]{
+            \Gamma, x \hastype A \proves M \hastype B
+          }{}
+        }
+      \end{equation*}
+
+      By the induction hypothesis on $\mathcal{E}^\prime$,
+      deduce
+      $\mathcal{E}^\prime : \Gamma, x \hastype A \proves \tilde M \checks B$.
+      Construct the derivation $\mathcal{E}$ as follows.
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves \lambda x. \tilde M \checks A \to B
+        }{
+          \deduce[\mathcal{E}^\prime]{
+            \Gamma, x \hastype A \proves \tilde M \checks B
+          }{}
+        }
+      \end{equation*}
+
+    \item[Case]
+      $\mathcal{D}$ is of the form
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves x \hastype A
+        }{
+          x \hastype A \in \Gamma
+        }
+      \end{equation*}
+
+      Construct $\mathcal{E}$ directly since we know that
+      $x \hastype A \in \Gamma$.
+      %
+      \begin{equation*}
+        \infer{
+          \Gamma \proves x \synth A
+        }{
+          x \hastype A \in \Gamma
+        }
+      \end{equation*}
+  \end{description}
+\end{proof}
+
 \end{document}
