@@ -1,0 +1,246 @@
+\documentclass[11pt,letterpaper]{article}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#4\\Language-based security -- COMP 523}
+\date{Thursday, 16 November 2017}
+
+\usepackage[geometry]{jakemath}
+
+\begin{document}
+
+\maketitle
+
+\section{Hereditary substitutions}
+
+\begin{enumerate}
+  \item
+    We first extend the type approximations and type erasure for
+    $\Sigma$-types.
+    %
+    \begin{equation*}
+      \text{Type Approximation}\quad
+      \alpha,\beta
+      ::= \alpha
+      | \alpha \to \beta
+      | \alpha \times \beta
+    \end{equation*}
+    %
+    Specifically, we approximate a dependent pair as a plain pair.
+
+    Next, the erasure proceeds in the same way as for function spaces: we just
+    forget the dependency and erase the subtrees recursively, replacing the
+    approximate simple type.
+    %
+    \begin{equation*}
+      (\Sigma x \hastype A. B)^- = A^- \times B^-
+    \end{equation*}
+
+  \item
+    Next, we extend the definition of hereditary substitutions to dependent
+    pairs.
+
+    We dispense with the easy case:
+    %
+    \begin{equation*}
+      [M/x]^n_\alpha (N_1, N_2) = ([M/x]^n_\alpha N_1, [M/x]^n_\alpha N_2)
+    \end{equation*}
+    %
+    Here there isn't anything special to do: since hereditary substitution
+    preserves normal forms, the result of the normal substitution to the two
+    subterms yields normal terms. Forming the pair of normal terms gives a
+    normal term, so we're fine.
+
+    Next we have the trickier cases, which can give rise to redeces.
+
+    First, we may need to substitute under a $\fst$, in which case we proceed
+    as follows.
+    %
+    \begin{equation*}
+      [M/x]^r_\alpha (\fst R) = M_1 \hastype \beta_1
+    \end{equation*}
+    %
+    if $[M/x]^r_\alpha R = (M_1, M_2) \hastype \beta_1 \times \beta_2$.
+
+    In this case, if we substitute under a $\fst$ and discover a (typed) pair,
+    then we have produced a redex. To resolve this we take the first component
+    of the pair and adjust the result type accordingly.
+
+    Second, we may need to substitute under a $\snd$, in which case we proceed
+    as follows.
+    %
+    \begin{equation*}
+      [M/x]^r_\alpha (\snd R) = M_2 \hastype \beta_2
+    \end{equation*}
+    %
+    if $[M/x]^r_\alpha R = (M_1, M_2) \hastype \beta_1 \times \beta_2$.
+
+    This case is resolved in the same way.
+
+  \item
+    Next we wish to prove termination of hereditary substitution.
+
+    \begin{lem}
+      If $[M/x]^r_\alpha = M^\prime \hastype \alpha^\prime$,
+      then $\alpha^\prime \leq \alpha$.
+    \end{lem}
+
+    \begin{proof}
+      We proceed by induction on the definition of the substitution,
+      considering the cases that produce typed results.
+      %
+      \begin{description}
+        \item[Case]
+          $[M/x]^r_\alpha x = M : \alpha$
+
+          Here, $\alpha^\prime = \alpha$, so we're done.
+
+        \item[Case]
+          $[M/x]^r_\alpha (R N) = M^{\prime\prime} : \beta$
+          where
+          $[M/x]^r_\alpha R = \lambda y. M^\prime \hastype \alpha_1 \to \beta$
+          and
+          $[M/x]_\alpha^n N = N^\prime$
+          and
+          $[N^\prime/x]_{\alpha_1}^n = M^{\prime\prime}$.
+
+          Note that $\alpha_1 \to \beta$ is no greater than $\alpha$ by the
+          induction hypothesis, so $\beta < \alpha$.
+
+        \item[Case]
+          $[M/x]^r_\alpha (\fst R) = M_1 \hastype \beta_1$
+          where
+          $[M/x]^r_\alpha R = (M_1, M_2) \hastype \beta_1 \times \beta_2$.
+
+          By the induction hypothesis $\beta_1 \times \beta_2 \leq \alpha$,
+          so $\beta_1 < \alpha$.
+
+        \item[Case] for $\snd$ follows the same argument.
+      \end{description}
+    \end{proof}
+
+    \begin{prop}
+      $[M/x]^*_\alpha (\cdot)$ terminates, either by returning a result or
+      failing after a finite number of steps.
+    \end{prop}
+
+    \begin{proof}
+      By lexicographic induction on the form of $\alpha$ and the form of the
+      term.
+
+      \begin{description}
+        \item[Case]
+          $[M/x]^n_\alpha (\lambda y. N)$.
+
+          Then by the induction hypothesis $[M/x]^n_\alpha (N)$ terminates.
+          (Here the term gets smaller but the type stays the same.)
+          If it fails, then we fail.
+          Else, we have $N^\prime = [M/x]^n_\alpha (N)$, so we form the lambda
+          and return it.
+
+        \item[Case]
+          $[M/x]^n_\alpha (M_1, M_2)$.
+
+          Then by the induction hypothesis
+          $[M/x]^n_\alpha M_1$ and $[M/x]^n_\alpha M_2$ terminate.
+          If either fails, then we fail.
+          Else we have $M_1^\prime = [M/x]^n_\alpha M_1$
+          and $M_2^\prime = [M/x]^n_\alpha M_2$,
+          so we return $(M_1^\prime, M_2^\prime)$.
+
+        \item[Case]
+          When we switch from the normal substitution to the neutral
+          substitution, the use of the induction hypothesis is justified
+          because the neutral substitution only switches back to the normal
+          substitution on a smaller type or a smaller term.
+          We will point out these uses of the induction hypothesis with ``(*)''
+          when they arise below.
+
+        \item[Case]
+          $[M/x]_\alpha^r y$.
+
+          If $y = x$, then we return $M \hastype \alpha$ (a typed normal term).
+          Else we return $y$ (an untyped neutral term).
+
+        \item[Case]
+          $[M/x]_\alpha^r (R N)$.
+
+          By the induction hypothesis (*), $[M/x]_\alpha^n N$ terminates since
+          $N$ is a smaller term.
+          If it fails, then we fail.
+          Else we have $N^\prime = [M/x]_\alpha^n N$.
+
+          By the induction hypothesis, $[M/x]_\alpha^r R$ terminates since the
+          term is smaller.
+          If it fails, then we fail.
+
+          Since this is a neutral substitution it can return a typed normal
+          term or another neutral term.
+          %
+          \begin{description}
+            \item[Subcase]
+              We have $R^\prime = [M/x]_\alpha^r R$ is a neutral term.
+
+              We return $R^\prime N^\prime$.
+
+            \item[Subcase]
+              We have
+              $M_1 \hastype \alpha_1 \to \beta = [M/x]_\alpha^r R$
+              is a typed normal term.
+
+              By a canonical forms lemma,
+              $M_1 = \lambda y. M^\prime \hastype \alpha_1 \to \beta$.
+
+              Then by the induction hypothesis (*),
+              $[N^\prime/y]_{\alpha_1}^n M^\prime$
+              terminates.
+              If it fails, then we fail.
+              Else we have
+              $M^{\prime\prime} = [N^\prime/y]_{\alpha_1}^n M^\prime$
+              and we return
+              $M^{\prime\prime} \hastype \beta$.
+
+            \item[Otherwise]
+              the term must be ill-typed so we fail.
+          \end{description}
+
+        \item[Case]
+          $[M/x]_\alpha^r (\fst R)$.
+
+          % if $(M_1, M_2) = [M/x]_\alpha^r R$.
+          %
+          By the induction hypothesis $[M/x]_\alpha^r R$ terminates since the
+          term is smaller.
+          If it fails, then we fail.
+
+          Else since it's a neutral substitution, it can produce a typed normal
+          term or an untyped neutral term.
+          %
+          \begin{description}
+            \item[Subcase]
+              We have
+              $M^\prime \hastype \beta_1 \times \beta_2 = [M/x]_\alpha^r R$
+              is a typed normal term.
+
+              Then by a canonical forms lemma we deduce that
+              $M^\prime = (M_1, M_2)$ so that $M_1 \hastype \beta_1$.
+
+              We return $M_1 \hastype \beta_1$.
+
+            \item[Subcase]
+              We have
+              $R^\prime = [M/x]_\alpha^r R$
+              is a neutral term.
+
+              Then we return $\fst R^\prime$ which is an untyped neutral term.
+
+            \item[Otherwise]
+              the term must be ill-typed so we fail.
+          \end{description}
+
+        \item[Case]
+          for $\snd$ follows the same argument as for $\fst$.
+      \end{description}
+    \end{proof}
+\end{enumerate}
+
+\end{document}
