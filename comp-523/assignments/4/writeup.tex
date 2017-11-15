@@ -307,7 +307,7 @@
 \end{proof}
 
 \begin{prop}[Completeness]
-  If $\Gamma \proves t \hastype A$ then $\Gamma \proves \tilde t \checks A$
+  If $\Gamma \proves t \hastype A$ then $\Gamma \proves \tilde t \synth A$
   where $\tilde t$ is obtained from $t$ by possibly adding type annotations to
   subterms.
 \end{prop}
@@ -344,10 +344,22 @@
           \infer{
             \Gamma \proves (\tilde M \hastype A \to B) \synth A \to B
           }{
-            \deduce[\mathcal{E}_1]{\Gamma \proves \tilde M \checks A \to B}{}
+            \infer{
+              \Gamma \proves \tilde M \checks A \to B
+            }{
+              \deduce[\mathcal{E}_1]{\Gamma \proves \tilde M \synth A \to B}{}
+              &
+              A \to B = A \to B
+            }
           }
           &
-          \deduce[\mathcal{E}_2]{\Gamma \proves \tilde N \checks A}{}
+          \infer{
+            \Gamma \proves \tilde N \checks A
+          }{
+            \deduce[\mathcal{E}_2]{\Gamma \proves \tilde N \synth A}{}
+            &
+            A = A
+          }
         }
       \end{equation*}
 
@@ -368,15 +380,11 @@
       %
       \begin{equation*}
         \infer{
-          \Gamma \proves \fst (\tilde M \hastype A \times B) \synth A
+          \Gamma \proves \fst \tilde M \synth A
         }{
-          \infer{
-            \Gamma \proves (\tilde M \hastype A \times B) \synth A \times B
-          }{
-            \deduce[\mathcal{E}^\prime]{
-              \Gamma \proves \tilde M \checks A \times B
-            }{}
-          }
+          \deduce[\mathcal{E}^\prime]{
+            \Gamma \proves \tilde M \synth A \times B
+          }{}
         }
       \end{equation*}
 
@@ -403,11 +411,21 @@
       %
       \begin{equation*}
         \infer{
-          \Gamma \proves \lambda x. \tilde M \checks A \to B
+          \Gamma \proves (\lambda x. \tilde M \hastype A \to B) \synth A \to B
         }{
-          \deduce[\mathcal{E}^\prime]{
-            \Gamma, x \hastype A \proves \tilde M \checks B
-          }{}
+          \infer{
+            \Gamma \proves \lambda x. \tilde M \checks A \to B
+          }{
+            \infer{
+              \Gamma, x \hastype A \proves \tilde M \checks B
+            }{
+              \deduce[\mathcal{E}^\prime]{
+                \Gamma, x \hastype A \proves \tilde M \synth B
+              }{}
+              &
+              B = B
+            }
+          }
         }
       \end{equation*}
 
@@ -433,6 +451,12 @@
         }
       \end{equation*}
   \end{description}
+
+  The cases we didn't show follow the same pattern:
+  if we need a $\checks$, then we can convert the $\synth$ that the induction
+  hypothesis gives us into a $\checks$ using the subsumption rule;
+  if the result of the rule is a $\checks$, then we can convert it to a
+  $\synth$ as required by the theorem by using the type annotation rule.
 \end{proof}
 
 \end{document}
