@@ -13,7 +13,111 @@
 
 \section{Constant angular velocity}
 
+See appendix $\ref{app:code}$ for the code.
+
+The construction of the forward Euler method is simple so we won't discuss it
+here.
+
+We construct the centered differences scheme by taking the Taylor expansion of
+$y(t + \Delta t)$ and $y(t - \Delta t)$ at $t$ and subtracting, which gives
+%
+\begin{equation*}
+  \deriv{t} y(t_n) = \frac{y(t_n + \Delta t) - y(t_n - \Delta t)}{2 \Delta t}
+\end{equation*}
+
+From the problem, we know that $\deriv{t} y(t_n) = \omega x(t_n)$,
+so we substitute and solve for $y(t_n + \Delta t)$.
+%
+\begin{equation*}
+  y(t_n + \Delta t) = 2 \omega x(t_n) \Delta t + y(t_n - \Delta t)
+\end{equation*}
+
+A similar analysis gives us that
+%
+\begin{equation*}
+  x(t_n + \Delta t) = -2 \omega y(t_n) \Delta t + x(t_n - \Delta t)
+\end{equation*}
+
+We can rewrite the equations into a nicer form.
+%
+\begin{align*}
+  x_{n+1} &= - 2 \omega y_n \Delta t + x_{n-1} \\
+  y_{n+1} &= 2 \omega x_n \Delta t + y_{n-1}
+\end{align*}
+
+Defining $f(t, x, y) = (-\omega y, \omega x)$ to be a vector function, we can
+rewrite the family of equations above into the form of a single vector
+equation.
+%
+\begin{equation*}
+  \vec v_{n+1} = 2 \Delta t\, f(t_n, \vec v_n) + \vec v_{n-1}
+\end{equation*}
+
+The \texttt{centeredDifferenceStep} function in our code computes this equation
+given the information on the right-hand side.
+
 \section{Nonlinear pendulum}
+
+First we discuss the construction of the backwards difference.
+
+We construct the first backwards difference by Taylor expanding $v(t - h)$
+around $t$ to get
+%
+\begin{equation*}
+  v(t - h) = v(t) - \deriv{t} v(t) h
+\end{equation*}
+%
+Since $\deriv{t} v(t) = -g \sin \theta(t)$ is known, we get
+%
+\begin{equation}
+  \label{eq:deriv-1}
+  - g \sin \theta(t_n) = \frac{v_n - v_{n-1}}{h}
+\end{equation}
+
+Next we construct the second backwards difference by expanding $\theta(t - h)$
+around $t$ to get
+%
+\begin{equation*}
+  \theta(t - h) = \theta(t) - \deriv{t} \theta(t) h
+\end{equation*}
+%
+and since $\deriv{t} \theta(t) = \frac{v(t)}{L}$ is known, we get
+%
+\begin{equation}
+  \label{eq:deriv-2}
+  v_n = \frac{L}{h}(\theta_n - \theta_{n-1})
+\end{equation}
+
+We substitute $v_n$ into \eqref{eq:deriv-1} to get
+%
+\begin{equation*}
+  -g \sin \theta_n = \frac{\frac{L}{h}(\theta_n - \theta_{n-1}) - v_{n-1}}{h}
+\end{equation*}
+
+In this equation $\theta_{n-1}$ and $v_{n-1}$ are known and $\theta_n$ is the
+only unknown. We solve for $\theta_n$ by root-finding using the Newton-Raphson
+method, since the derivative is easy to compute.
+
+In particular, we solve for the root(s) of the function
+%
+\begin{equation*}
+  f(\theta)
+  = \frac{\frac{L}{h}(\theta - \theta_{n-1}) - v_{n-1}}{h}
+  + g \sin \theta
+\end{equation*}
+%
+whose derivative is
+%
+\begin{equation*}
+  f^\prime(\theta)
+  = \frac{L}{h^2} \theta + g \cos \theta
+\end{equation*}
+
+We take $\theta_{n-1}$ as the initial guess in each case.
+
+Once we obtain a value for $\theta_n$, we can substitute it back into
+\eqref{eq:deriv-2} to compute $v_n$. This concludes the procedure for
+performing one step of backwards Euler.
 
 \section{Integrating ODEs}
 

@@ -4,6 +4,7 @@ y0 = 0 -- km
 x0 = 600 -- km
 dt = 0.5 -- hours
 period = 72 -- hours
+tmax = 140 -- hours
 
 omega = 2 * pi / period
 
@@ -37,6 +38,10 @@ forwardEulerStep ode (t, ps) = (t + dt, ps <+> dt *| ode t ps)
   -- current time step.
 
 -- | Run a forward Euler simluation (forever).
+--
+-- This function computes an infinite list of data points.
+-- In our output, we take values from it provided that the independent variable
+-- is no greater than 140.
 forwardEuler
   :: ODE -- ^ the ODE to solve
   -> (Double, Params) -- ^ the initial conditions
@@ -45,6 +50,26 @@ forwardEuler ode = iterate (forwardEulerStep ode)
 
 ------ IMPLEMENTATION OF CENTERED DIFFERENCES ------
 
+-- | Perform a step of centered differences on an ODE.
+centeredDifferenceStep :: ODE -> (Double, (Params, Params)) -> (Double, (Params, Params))
+centeredDifferenceStep ode (t, (vprev, vcur)) =
+  (t + dt, (vcur, 2 * dt *| ode t vcur <+> vprev))
+  -- The new time is at t + dt.
+  -- The previous values for the next iteration are the current interation's
+  -- current values.
+
+centeredDifferences
+  :: ODE -- ^ the ODE to solve
+  -> (Double, Params) -- ^ the initial conditions
+  -> [(Double, Params)] -- ^ the solution
+centeredDifferences ode (t0, p0) =
+  (t0, p0) : map (fmap snd) sim where
+    (t1, p1) = forwardEulerStep ode (t0, p0)
+    sim = iterate (centeredDifferenceStep ode) (t1, (p0, p1))
+  -- why this crazy map business after iterate?
+  -- `centeredDifferenceStep` outputs a *pair* of params along with a time
+  -- tacked on the front, so we traverse the list constructed by `iterate` and
+  -- keep only the second Params
 
 ------ OUTPUT ------
 
@@ -53,5 +78,12 @@ showRow (t, ps) = intercalate " " (map show (t : ps))
 
 main :: IO ()
 main = do
-  let sol = takeWhile ((<=140) . fst) $ forwardEuler theOde (0, [x0, y0])
-  writeFile "output/fe_ode1.txt" (map showRow sol)
+  let sim140h = takeWhile ((<= tmax) . fst)
+  let initial = (0, [x0, y0])
+  let newline = (++ "\n")
+
+  let feSol = sim140h $ forwardEuler theOde initial
+  writeFile "output/fe_ode1.txt" (concatMap (newline . showRow) feSol)
+
+  let cdSol = sim140h $ centeredDifferences theOde initial
+  writeFile "output/cd_ode1.txt" (concatMap (newline . showRow) cdSol)
