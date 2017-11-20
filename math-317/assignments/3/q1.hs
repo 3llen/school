@@ -81,9 +81,11 @@ main = do
   let sim140h = takeWhile ((<= tmax) . fst)
   let initial = (0, [x0, y0])
   let newline = (++ "\n")
+  let header = ("t x y\n" ++)
+  let writeOutput name = writeFile name . header . (concatMap (newline . showRow))
 
   let feSol = sim140h $ forwardEuler theOde initial
-  writeFile "output/fe_ode1.txt" (concatMap (newline . showRow) feSol)
+  writeOutput "output/fe_ode1.txt" feSol
 
   let cdSol = sim140h $ centeredDifferences theOde initial
-  writeFile "output/cd_ode1.txt" (concatMap (newline . showRow) cdSol)
+  writeOutput "output/cd_ode1.txt" cdSol

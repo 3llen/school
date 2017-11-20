@@ -6,6 +6,20 @@
 
 \usepackage[geometry]{jakemath}
 \usepackage{listings}
+\usepackage{pgfplots}
+\usetikzlibrary{external}
+\tikzexternalize[prefix=figures/]
+
+\lstset{
+  basicstyle=\footnotesize\ttfamily,
+}
+
+% \tikzset{
+%   external/system call={%
+%     lualatex \tikzexternalcheckshellescape -halt-on-error
+%     -interaction=batchmode -jobname "\image" "\texsource"
+%   }
+% }
 
 \begin{document}
 
@@ -13,7 +27,7 @@
 
 \section{Constant angular velocity}
 
-See appendix $\ref{app:code}$ for the code.
+See appendix $\ref{app:q1-code}$ for the code.
 
 The construction of the forward Euler method is simple so we won't discuss it
 here.
@@ -56,7 +70,42 @@ equation.
 The \texttt{centeredDifferenceStep} function in our code computes this equation
 given the information on the right-hand side.
 
+See figure \ref{fig:q1} for the results and discussion.
+
+\tikzsetnextfilename{cd_ode1}
+\begin{figure}[ht]
+  \pgfplotstableread{output/cd_ode1.txt}{\odeonecd}
+  \pgfplotstableread{output/fe_ode1.txt}{\odeonefe}
+  \centering
+  \begin{tikzpicture}[scale=1]
+    \begin{axis}[
+        minor tick num=1,
+        xlabel={position (x)},
+        ylabel={position (y)},
+    ]
+      \addplot [red] table [x={x}, y={y}] {\odeonefe};
+      \addplot [blue] table [x={x}, y={y}] {\odeonecd};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{%
+    The position of the particle is shown as a parametric plot in the time
+    $t$.
+    In red is the simulation using the forward Euler method. In blue is the
+    simulation using the centered difference method.
+    In forward Euler, truncation errors compound over time: physically
+    speaking, this method injects energy into the system. This is evidenced
+    by the particle moving further away from the center.
+    In centered differences, we eliminate the first term in the Taylor
+    expansions when we subtract the two equations that go into the
+    construction. This boosts the accuracy of the method to $O(h^2)$ whereas
+    forward Euler has accuray $O(h)$.%
+  }
+  \label{fig:q1}
+\end{figure}
+
 \section{Nonlinear pendulum}
+
+See appendix $\ref{app:q2-code}$ for the code.
 
 First we discuss the construction of the backwards difference.
 
@@ -119,8 +168,191 @@ Once we obtain a value for $\theta_n$, we can substitute it back into
 \eqref{eq:deriv-2} to compute $v_n$. This concludes the procedure for
 performing one step of backwards Euler.
 
+See figure \ref{fig:q2} for results and discussion.
+
+\tikzsetnextfilename{ode2}
+\begin{figure}[h]
+  \pgfplotstableread{output/be_ode2.txt}{\odetwobe}
+  \pgfplotstableread{output/fe_ode2.txt}{\odetwofe}
+  \centering
+  \begin{tikzpicture}[scale=1]
+    \begin{axis}[
+        minor tick num=1,
+        xlabel={Time (s)},
+        ylabel={Velocity (m/s)},
+    ]
+      \addplot [blue] table [x={t}, y={v}] {\odetwobe};
+      \addplot [red] table [x={t}, y={v}] {\odetwofe};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{%
+    The red curve shows the velocity calculated using the forward Euler method,
+    and the blue curve shows the velocity calculated using the backward Euler
+    method.
+    Implicit schemes like backward Euler are numerically stable.
+    In contrast, errors accumulate and compound over time in the forward Euler
+    method, as evidenced by the growing amplitude of oscillation in the red
+    curve.
+  }
+  \label{fig:q2}
+\end{figure}
+
 \section{Integrating ODEs}
 
+See appendix \ref{app:q3-code} for the code.
+See figure \ref{fig:q3} for the results.
+
+\tikzsetnextfilename{ode3}
+\begin{figure}
+  \pgfplotstableread{output/ie_ode3.txt}{\odethreeie}
+  \centering
+  \begin{tikzpicture}[scale=1]
+    \begin{axis}[
+        minor tick num=1,
+        ylabel={$z$-position},
+        xlabel={$x$-position},
+    ]
+      \addplot [red] table [x={x}, y={z}] {\odethreeie};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{%
+    The Lorenz attractor! We only plot the first $2000$ of the $20000$ data
+    points, because otherwise compilation of this document takes upwards of ten
+    minutes, and the resulting PDF contains so many paths that it's unviewable.
+  }
+\end{figure}
+
 \section{Second-order ODE}
+
+First we analytically solve the second-order homogeneous linear differential
+equation with constant coefficients
+%
+\begin{equation*}
+  y^{\prime\prime} + 2 y^\prime + 9 y = 0
+\end{equation*}
+%
+by considering its characteristic equation
+%
+\begin{equation*}
+  z^2 + 2z + 9 = 0
+\end{equation*}
+%
+which has complex roots
+%
+\begin{equation*}
+  z = -1 \pm 2 \sqrt 2 i
+\end{equation*}
+
+Hence the solution is of the form
+%
+\begin{equation*}
+  y(t) = c_1 e^{-t} \cos{2\sqrt{2} t} + c_2 e^{-t} \sin{2\sqrt{2} t}
+\end{equation*}
+
+We compute the derivative and use the initial conditions to solve for $c_1$ and
+$c_2$: we have two equations and two unknowns.
+We find that
+%
+\begin{align*}
+  c_1 &= 0 \\
+  c_2 &= \frac{\sqrt{2}}{4}
+\end{align*}
+%
+so the solution is
+%
+\begin{equation*}
+  y(t) = \frac{\sqrt{2}}{4} e^{-t} \sin{2 \sqrt 2 t}
+\end{equation*}
+
+Next we want to solve this problem numerically.
+We perform a change of variables to transform the problem into a system of
+first-order differential equations.
+
+Let $u_1 = y$ and $u_2 = y^\prime$, so
+%
+\begin{align*}
+  u_2 &= u_1^\prime \\
+  u_2^\prime + 2u_2 + 9 u_1 = 0
+\end{align*}
+
+Applying the backward Euler scheme gives
+%
+\begin{align*}
+  u_1(t - h) &= u_1(t) - u_2(t) h \\
+  u_2(t - h) &= u_2(t) - (- 9 u_1(t) - 2 u_2(t))h
+\end{align*}
+%
+which we can rewrite in matrix form as
+%
+\begin{equation*}
+  (I - h A) \vec u(t_n) = \vec u(t_{n-1})
+\end{equation*}
+%
+where
+\begin{equation*}
+  A = \parens{
+    \begin{array}{cc}
+      0 & 1 \\
+      -9 & -2
+    \end{array}
+  }
+\end{equation*}
+
+See figure \ref{fig:q4} for the results.
+
+\tikzsetnextfilename{ode4}
+\begin{figure}[ht]
+  \pgfplotstableread{output/ode3-small.txt}{\odefoursmall}
+  \pgfplotstableread{output/ode3-med.txt}{\odefourmed}
+  \pgfplotstableread{output/ode3-large.txt}{\odefourlarge}
+  \pgfplotstableread{output/ode3-analytical.txt}{\odefouranal}
+  \centering
+  \begin{tikzpicture}[scale=1]
+    \begin{axis}[
+        minor tick num=1,
+        xlabel={$t$},
+        ylabel={$y(t)$},
+    ]
+      \addplot [black] table [x={t}, y={u1}] {\odefouranal};
+      \addplot [red] table [x={t}, y={u1}] {\odefoursmall};
+      \addplot [blue] table [x={t}, y={u1}] {\odefourmed};
+      \addplot [green] table [x={t}, y={u1}] {\odefourlarge};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{%
+    The very oscillatory curve (black) is the analytic solution.
+    The red curve computed with $h = 0.001$ is superimposed over the analytic
+    solution.
+    The blue curve is the second closest to the analytic solution,
+    computed with $h = 0.05$.
+    The green curve is the furthest from the analytic solution,
+    computed with $h = 0.1$.
+  }
+\end{figure}
+
+\pagebreak
+\appendix
+
+\section{Code}
+
+\subsection{For question 1}
+\label{app:q1-code}
+
+\lstinputlisting[language=Haskell]{q1.hs}
+
+\subsection{For question 2}
+\label{app:q2-code}
+
+\lstinputlisting[language=Haskell]{q2.hs}
+
+\subsection{For question 3}
+\label{app:q3-code}
+
+\lstinputlisting[language=Haskell]{q3.hs}
+
+\subsection{For question 4}
+\label{app:q4-code}
+
+\lstinputlisting[language=Haskell]{q4.hs}
 
 \end{document}

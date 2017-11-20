@@ -1,4 +1,4 @@
 .PHONY: writeup.pdf
 
 writeup.pdf: writeup.tex
-	pdflatex $<
+	pdflatex -shell-escape $<

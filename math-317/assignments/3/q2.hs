@@ -1,3 +1,5 @@
+{-# LANGUAGE ViewPatterns #-}
+
 import Data.List ( intercalate )
 import Debug.Trace
 
@@ -19,7 +21,7 @@ type ODE = Double -> Params -> Params
 type Params = [Double]
 
 theOde :: ODE
-theOde t [v, theta] = [- g * sin theta, v / l ]
+theOde t [theta, v] = [v / l, - g * sin theta]
 
 -- | Pointwise addition.
 (<+>) :: Num a => [a] -> [a] -> [a]
@@ -56,50 +58,59 @@ forwardEuler ode = iterate (forwardEulerStep ode)
 type Function = Double -> Double
 
 -- To do the Backward Euler method, we need to do root-finding as an
--- intermediate procedure. We chose the Newton-Raphson method for its fast
--- convergence and since the functions we're dealing with have easily
--- computable derivatives.
+-- intermediate procedure. We chose the Second method for its reasonable
+-- convergence and since we can always bracket the root between 0 and 2pi.
 
--- | Performs a single step of the Newton-Raphson method.
-nrStep
+-- | Performs a single step of the secant method.
+secant
   :: Function -- ^ objective function
-  -> Function -- ^ its derivative
-  -> Double -- ^ guess
+  -> Double -- ^ first guess
+  -> Double -- ^ second guess
   -> Double -- ^ new guess
-nrStep f df x =
-  -- compute the derivative at the guess to get the slope of the tangent
-  let a = df x
-  -- find the zero of the tangent, this is the new guess
-      b = f x - a * x
-      in - b / a
+secant f x0 x1 = x1 - f x1 * m where
+  -- m is the slope of the line between f(x0) and f(x1)
+  m = (x1 - x0) / (f x1 - f x0)
+  -- and the result 'secant' is the zero of the line between
+  -- (x0, f(x0)) and (x1, f(x1)).
 
--- | We recover the full NR method by using the 'iterate' function from the
--- standard library, which repeatedly applies a function to an initial input
--- and collects the infinite list of all the results.
-nr
+-- | Performs a step of the secant method, but with a type that's directly
+-- amenable to the 'iterate' function.
+secant'
+  :: Function
+  -> (Double, Double) -- ^ (nth guess, (n+1)th guess)
+  -> (Double, Double) -- ^ ( (n+1)th guess, (n+2)th guess)
+secant' f (x0, x1) = let x2 = secant f x0 x1 in (x1, x2)
+
+-- | Same idea. We use the 'iterate' library function on our function secant'
+-- to get a list of /pairs/ of guesses. Note that by the definition of secant',
+-- the list of tuples will look like this:
+--   (x0, x1), (x1, x2), (x2, x3), etc.
+-- so to remove the duplicates, we take the first component of every pair in
+-- the list.
+fullSecant
   :: Function -- ^ objective function
-  -> Function -- ^ its derivative
-  -> Double -- ^ the initial guess
+  -> Double -- ^ first guess
+  -> Double -- ^ second guess
   -> [Double] -- ^ infinite list of all intermediate steps
-nr f df = iterate (nrStep f df)
+fullSecant f x0 x1 = map fst (iterate (secant' f) (x0, x1))
 
 -- | Performs one step of backwards Euler. This function is not nice and
 -- generic like the forwards Euler implementation, since we require special
 -- handling due to the implicit nature of the scheme.
 backwardEulerStep :: (Double, Params) -> (Double, Params)
 backwardEulerStep (t, [theta, v]) = (t + dt, [theta', v']) where
-  v' = (l/dt) * (theta' - theta)
-  theta' = converge epsilon iterMax $ nr f f' theta
+  v' = v - g * sin theta' * dt
+  theta' = converge epsilon iterMax $ fullSecant f 0 (2*pi - epsilon)
 
-  f x = ((l/dt) * (x - theta) - v) / dt + g * sin x
-  f' x = (l/dt**2) * x + g * cos x
+  f x = (l/dt) * (x - theta) + g * dt * sin x - v
 
-traceShowing x = traceShow x x
+fmod :: Double -> Double -> Double
+fmod m r = r - fromIntegral (floor $ r/m) * m
 
 -- | Determines when a list of numbers converges by using a tolerance and a
 -- maximum number of iterations.
 converge :: Double -> Int -> [Double] -> Double
-converge tol n xs = case dropWhile ((> tol) . snd) ds of
+converge tol n (takeWhile (not . isNaN) -> xs) = case dropWhile ((> tol) . snd) ds of
   -- We drop leading elements in the list of pairs whose difference with the
   -- previous element is above the tolerance
   -- If the list that results from this dropping is empty, it's that the method
@@ -110,7 +121,7 @@ converge tol n xs = case dropWhile ((> tol) . snd) ds of
   (x:_) -> fst x
   where
     ds :: [(Double, Double)]
-    ds = traceShowing (take n (tail xs)) `zip` (tail xs <+> (-1) *| xs)
+    ds = take n (tail xs) `zip` (tail xs <+> (-1) *| xs)
     -- the list of differences in the stream paired with the stream
     -- so each element in this list of pairs knows what its difference with the
     -- previous element is
@@ -128,9 +139,10 @@ showRow (t, ps) = intercalate " " (map show (t : ps))
 main :: IO ()
 main = do
   let sim = takeWhile ((<= tmax) . fst)
-  let initial = (0, [v0, theta0])
+  let initial = (0, [theta0, v0])
   let newline = (++ "\n")
-  let writeOutput name = writeFile name . concatMap (newline . showRow)
+  let header = ("t theta v\n" ++)
+  let writeOutput name = writeFile name . header . concatMap (newline . showRow)
 
   let feSol = sim $ forwardEuler theOde initial
   let beSol = sim $ backwardEuler initial
