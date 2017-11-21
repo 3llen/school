@@ -1,17 +1,116 @@
-\documentclass[11pt,letterpaper]{article}
+\documentclass[12pt,letterpaper]{article}
 
 \usepackage[margin=1.87cm]{geometry}
 \usepackage{fancyhdr}
+\usepackage[backend=biber]{biblatex}
+
+\addbibresource{bib.bib}
 
 \pagestyle{fancy}
 \fancyhf{}
 \rhead{Errington, Jacob Thomas}
-\lhead{OUTLINE OF PROPOSED RESEARCH}
+\lhead{Outline of proposed research: \emph{Mechanize proofs now!}}
 \cfoot{\thepage}
 \setlength\headheight{14pt}
 
 \begin{document}
 
-Hello world!
+As software grows in ubiquity, understanding the properties of software
+products becomes increasingly essential. For life-critical software, in which
+the risks associated with software malfunction are unacceptably high, merely
+testing the software on a large number of cases is insufficient. Instead, how
+can we \emph{be sure} that software does \emph{what it is supposed to do?} This
+question drives my interest in programming languages research.
+%
+One approach to certified programming is to use languages which by their very
+nature provide correctness guarantees. Such languages leverage the Curry-Howard
+correspondence: the \emph{type} of a program corresponds to a
+\emph{proposition} and the program itself thus corresponds to a \emph{proof} of
+that proposition. Hence, typechecking the program amounts to verifying the
+proof.
+
+The upshot is that instead of proving a property about \emph{one program}, we
+can instead prove properties about a \emph{language} and deduce as corollaries
+the properties of the programs in that language.
+%This is in some sense easier to do, since programming languages are formal
+%systems, and the study of formal systems is well-understood from a logical
+%perspective.
+In fact, many programming languages can be modelled using higher-order
+abstract syntax\cite{hoas} as a signature in the Logical Framework LF\cite{lf}:
+Pientka demonstrated\cite{bp-proof-pearl} the convenience of this encoding by
+applying it in the Twelf\cite{twelf} system to investigate a problem from the
+POPLMark challenge\cite{poplmark}.
+Pientka, Cave, et al. later developed and extended the
+Beluga\cite{beluga,subst-beluga,inductive-beluga} system as a framework for
+reasoning about programming languages.
+%Broadly speaking, an inductive proof in Beluga about some language is
+%represented as a recursive program over the LF encoding of that language.
+The chief innovation of the Beluga system is its first-class support for
+contexts and substitutions, which significantly reduces the number of
+(uninteresting) lemmas that must be proved about the representation of
+variables in the object language.
+
+% This correspondence between logic and programming is very far-reaching and
+% allows numerous concepts and results from logic to be directly applied to the
+% world of software engineering.
+%
+
+This proposal aims to enhance and to investigate the methodologies surrounding
+the development of (certified) programming languages.
+Our specific objective is to build and study a proof search engine, with the
+goal of automating various meta-theoretical proofs, such as type preservation
+and progress.
+We intend to carry out this development as an extension to the Beluga system,
+taking advantage of its inestimably useful first-class support for contexts and
+substitutions.
+%We envision future Beluga users as needing only to write down the proposition
+%in first-order logic to prove as a type in Beluga, and obtaining thanks to our
+%engine a program of that type, i.e. a proof of the proposition.
+
+Previously, Shürmann\cite{shurmann-phd} showed how inductive proofs
+could be automated in a principled way.
+However, his work had several shortcomings: at the time of his developments, it
+was still unclear how these proofs ought to be represented. Consequently his
+engine did not output reusable proof terms, nor could it take in hand-written
+proofs of lemmas as hints.
+%Concretely, if a user of this system was able to prove 5 lemmas automatically,
+%but unable to automatically prove a sixth, then there was no way for the user
+%to write that proof by hand while relying on the lemmas automatically proven.
+A specific practical component of our proposed research is to rectify
+these concerns by using Beluga as the language for representing proofs: we will
+extend Shürmann's work to take advantage of Beluga's first-class support for
+contexts and substitutions, and we will design our proof search engine so that
+it can both generate Beluga programs as output and use pre-existing lemmas
+written in Beluga as extra inputs.
+
+On the more theoretical side, it not possible to derive a proof
+for an arbitrary true sentence in first-order logic.
+%Although Gödel showed that first-order logic is \emph{complete}, his proof was
+%non-constructive. Furthermore, no constructive proof can exist, as if one did,
+%then it could be used to implement a program to decide the halting problem.
+It is therefore unavoidable that our proof search engine will, for some true
+sentences as input, be unable to find a proof.
+A specific theoretical component of our proposed research is to provide a
+useful characterization of the theorems that our engine would be capable of
+proving.
+
+Concretely, we intend to use the sequent calculus introduced by Gentzen as a
+foundation for our engine. However, this calculus is too non-deterministic to
+be directly used as a proof search strategy. Instead, we will use
+\emph{focussing}, which organizes the rules of the sequent calculus into
+separate phases according to when best to apply them and make non-deterministic
+choices. The use of focussing was fruitful in the development of the Tac
+theorem prover\cite{tac} by Baelde et al.
+
+The applicability of the proposed research is broad. Although we concretely
+intend to develop our engine as an extension to Beluga, the core algorithm will
+be independent of the Beluga system and could be reused in other languages.
+Our engine will facilitate proving properties of new languages, and and such
+will facilitate the development of these languages. Ultimately, concepts from
+research languages trickle down into more mainstream programming languages,
+enabling software engineers to write correct code with confidence.
+
+\pagebreak
+\printbibliography
 
 \end{document}
