@@ -41,6 +41,16 @@
 
 %%%%%%%%%% MAIN LIBRARY %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%% ENVIRONMENTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\myenvironment{\@star@or@long\provide@environment}
+\def\provide@environment#1{%
+  \@ifundefined{#1}%
+  {\def\reserved@jake@a{\newenvironment{#1}}}%
+  {\def\reserved@jake@a{\renewenvironment{#1}}}%
+  \reserved@jake@a
+}
+
 %%%%% FONTS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Quadrata font
@@ -122,7 +132,7 @@
 \newtheorem*{rem*}{Remark}% [section] % don't want grouping by sections
 
 % Solutions to exercises
-\newenvironment{solution}{
+\myenvironment{solution}{
     \let\oldqedsymbol=\qedsymbol%
     \def\@addpunct##1{}%
     \renewcommand{\qedsymbol}{$\blacktriangleleft$}%
@@ -154,7 +164,11 @@
 \renewcommand{\Join}{\bigvee}
 \newcommand{\Meet}{\bigwedge}
 \newcommand{\symdiff}{\mathbin{\Delta}}
+\ifdef{\fact}{
+\renewcommand{\fact}{!\,}
+}{
 \newcommand{\fact}{!\,}
+}
 \newcommand{\given}{\;\vert\;}
 \newcommand{\sth}{\;\vert\;}
 \newcommand{\compl}{^c}
