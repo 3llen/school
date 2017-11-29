@@ -1,23 +1,242 @@
-\documentclass[serif,mathserif]{beamer}
 
+\documentclass{beamer}
 \title[Chrona]{Chrona}
 \subtitle{%
   A copattern treatment of time
 }
 \author{Jacob Thomas Errington}
+\institute{McGill University}
 \date{30 November 2017}
 
 \usepackage{jakemath}
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\ttfamily
+}
+
+\usefonttheme{serif}
+
+\newcommand{\goal}{\mathbin{>}}
+\renewcommand{\synth}{\mathbin{\searrow}}
+\newcommand{\pip}{\mathbin{|}}
+\newcommand{\pair}[2]{\mathtt{(}#1\mathtt{,}#2\mathtt{)}}
+\newcommand{\obs}[1]{\mathtt{.#1}}
+\newcommand{\fun}{\mathtt{fun}\;}
+\newcommand{\fto}{\mathbin{\Rightarrow}}
+\newcommand{\code}[1]{\text{\texttt{#1}}}
+\renewcommand{\circle}{\bigcirc}
+
+\newcommand{\unk}{\text{?}}
 
 \begin{document}
 
 \frame{\titlepage}
 
 \begin{frame}
+  \frametitle{Goal}
+
+  \alert{
+    Create a (surface-level) functional reactive programming language with
+    support for copattern matching.
+  }
+\end{frame}
+
+\begin{frame}
   \frametitle{Motivation}
-  \begin{itemize}
-    \item Many systems are reactive e.g. OS, GUI
-    \item Copatterns complete the data/codata duality
+
+  \only<1>{
+    Many systems are reactive:
+    \begin{itemize}
+      \item operating systems,
+      \item graphical user interfaces,
+      \item games,
+      \item servers,
+      \item etc.
+    \end{itemize}
+  }
+  \only<2>{
+    The traditional event-driven model has many challenges:
+    \begin{itemize}
+      \item concurrency,
+        % how can we run multiple things "at once"?
+        % Java: complex concurrency model
+        % JavaScript: cooperative multitasking
+      \item imperative programming,
+        % components of a reactive system have internal state that they
+        % may modify, which can result in complicated implicit data
+        % dependencies
+      \item callbacks.
+        % requires writing code in CPS, which is a whole-program
+        % transformation unless you have call/cc, is error-prone (e.g.
+        % calling the same continuation twice)
+    \end{itemize}
+  }
+  \only<3>{
+    Functional reactive programming resolves these problems by employing:
+    \begin{itemize}
+      \item pure functional programming,
+        % which avoids the implicit dependencies that arise in stateful
+        % imperative programming
+      \item a direct coding style.
+        % as opposed to the CPS style
+    \end{itemize}
+  }
+
+  \only<4-5>{
+    Codata types are not as well-understood as data types:
+    \begin{itemize}
+      \item
+        defining codata using constructors leads to problems
+        (coinduction is broken in Coq: it breaks type preservation);
+      \item
+        data and codata cannot be freely mixed in Agda.
+        % we can encode "infinitely often" but not "eventually forever"
+    \end{itemize}
+    \visible<5>{
+      Copatterns try to resolve these issues.
+    }
+  }
+
+  \only<6>{
+    Copatterns and observations are dual to patterns and constructors:
+    \begin{itemize}
+      \item
+        patterns \emph{analyze} data whereas copatterns \emph{synthesize}
+        codata.
+    \end{itemize}
+  }
+  % \alert{Let's combine copatterns with reactive programming.}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Recall: copattern matching}
+
+  \lstinputlisting{copattern-example-1.chr}
+
+  \pause
+  \begin{rem}
+    Not all branches have the same type!
+    \begin{itemize}
+      \item
+        \texttt{fs.head xs.head} has type \texttt{B};
+      \item
+        \texttt{map fs.tail xs.tail} has type \texttt{Stream B}.
+    \end{itemize}
+  \end{rem}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Copatterns: syntax and typing}
+
+  \visible<1->{
+    \begin{align*}
+      &\text{Copattern} \; &q &::=
+      \cdot \pip \obs{d} \, q \pip p\, q \\
+      %
+      &\text{Pattern} \; &p &::=
+      x \pip \mathtt{c}\, p \pip \pair{p_1}{p_2} \\
+      %
+      &\text{Term} \; &t &::= \cdots \pip \fun \overrightarrow{q \fto t}
+      %
+    \end{align*}
+  }
+
+  \visible<2->{
+    \begin{equation*}
+      \boxed{\Gamma \goal S \proves q \synth T}
+    \end{equation*}
+    %
+    ``Check copattern $q$ with goal $S$ synthesizing type $T$ and bindings
+    $\Gamma$.''
+  }
+\end{frame}
+
+% \begin{frame}
+%   \frametitle{Copattern typing: example}
+% 
+%   \begin{equation*}
+%     \infer{
+%       \unk
+%       \goal \code{S (A -> B) -> S A -> S B}
+%       \proves \code{fs xs .head}
+%       \synth \unk
+%     }{
+%       \only<1>{\unk}
+%       \visible<2->{
+%         \infer{
+%           \unk, \code{fs} \hastype \code{S (A -> B)}
+%           \goal \code{S A -> S B}
+%           \proves \code{xs .head}
+%           \synth \unk
+%         }{
+%           \only<2>{\unk}
+%           \visible<3->{
+%             \infer{
+%               \unk,
+%               \code{fs} \hastype \code{S (A -> B)},
+%               \code{xs} \hastype \code{S A}
+%               \goal \code{S B}
+%               \proves \code{.head}
+%               \synth \unk
+%             }{
+%               \only<3>{\unk}
+%               \visible<4->{
+%                 \infer{
+%                   \unk,
+%                   \code{fs} \hastype \code{S (A -> B)},
+%                   \code{xs} \hastype \code{S A}
+%                   \goal \code{B}
+%                   \proves \cdot
+%                   \synth \code{B}
+%                 }{}
+%               }
+%             }
+%           }
+%         }
+%       }
+%     }
+%   \end{equation*}
+% \end{frame}
+
+\begin{frame}
+  \frametitle{Recall: LTL}
+
+  %\begin{itemize}[<+->]
+  %  \item A.~Pnueli (1977) introduces LTL for formal verification.
+  %  \item R.~Davies (1996) uses LTL for binding-time analysis (staged
+  %    computation).
+  %  \item P.~Hudak and C.~Elliott (1997) invent FRP, with continuous time.
+  %  \item A.~Jeffrey (2012) observes that LTL can be used as a type system FRP.
+  %  \item A.~Cave et al. (2014) use LTL for FRP.
+  %\end{itemize}
+
+  \only<1>{
+    \begin{itemize}
+      \item
+        Based on the \emph{lax modality} $\circle$.
+
+      \item
+        More familiar modalities $\square$ (always) and $\lozenge$ (eventually)
+        can be \emph{derived} using (co)induction:
+        \begin{align*}
+          \square A &\equiv \nu X.\; A \times \circle X \\
+          \lozenge A &\equiv \mu X.\; A + \circle X
+        \end{align*}
+    \end{itemize}
+  }
+  \only<2>{
+    \begin{itemize}
+      \item A.~Cave et al. (2014) use LTL for FRP with two ``time zones''.
+
+        RULES
+
+      \item R.~Davies (1996) uses LTL for staged computation with arbitrarily
+        many time zones.
+
+        RULES
+    \end{itemize}
+  }
 \end{frame}
 
 \begin{frame}
@@ -31,7 +250,7 @@
     \item[1996:]
       R.~Davies applies LTL to binding-time analysis
     \item[1997:]
-      P.~Hudak and C.~Elliott continuous-time FRP
+      P.~Hudak and C.~Elliott invent FRP, with continuous time
     \item[2012:]
       A.~Jeffrey observes $\Gamma \proves_\text{LTL} \text{FRP}$
     \item[2013:]

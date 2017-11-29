@@ -1,0 +1,8 @@
+codata Stream A =
+    { .head : A
+    , .tail : Stream A
+    }
+
+map : Stream (A -> B) -> Stream A -> Stream B
+map fs xs .head = fs.head xs.head
+map fs xs .tail = map fs.tail xs.tail
