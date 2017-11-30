@@ -1,9 +1,7 @@
 
 \documentclass{beamer}
-\title[Chrona]{Chrona}
-\subtitle{%
-  A copattern treatment of time
-}
+\title{Time as codata}
+\subtitle{A copattern treatment of functional reactive programming}
 \author{Jacob Thomas Errington}
 \institute{McGill University}
 \date{30 November 2017}
@@ -24,14 +22,110 @@
 \newcommand{\obs}[1]{\mathtt{.#1}}
 \newcommand{\fun}{\mathtt{fun}\;}
 \newcommand{\fto}{\mathbin{\Rightarrow}}
-\newcommand{\code}[1]{\text{\texttt{#1}}}
+\newcommand{\code}[1]{\;\text{\texttt{#1}}\;}
 \renewcommand{\circle}{\bigcirc}
+\newcommand{\tnext}{\text{\bullet}}
 
 \newcommand{\unk}{\text{?}}
 
 \begin{document}
 
 \frame{\titlepage}
+
+\begin{frame}
+  \frametitle{Motivation}
+
+  \begin{itemize}
+    \item Want to program reactive systems.
+      \pause
+    \item Callbacks and state are horrifying.
+      \pause
+    \item FRP solves this \pause but at the cost of space leaks.
+      \pause
+    \item Existing leak-proof systems are cumbersome.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Concrete problem}
+
+  \only<1>{
+    \centering
+    POPL'14:
+    LTL as a type system for FRP.
+  }
+
+  \only<2-4>{
+    \begin{equation*}
+      \infer{
+        \alert<3>{\Theta;\Gamma} \proves \tnext M \hastype \circle A
+      }{
+        \alert<4>{\cdot;\Theta} \proves M \hastype A
+      }
+    \end{equation*}
+  }
+
+  \only<5-6>{
+    \begin{equation*}
+      \infer{
+        \Theta;\Gamma \proves
+        \code{let} \bullet x = M \code{in} N \hastype C
+      }{
+        \Theta;\Gamma \proves M \hastype \circle A
+        &
+        \alert<6>{\Theta, x \hastype A}; \Gamma \proves N \hastype C
+      }
+    \end{equation*}
+  }
+
+  \only<7>{
+    \begin{equation*}
+      \code{codata} \code{Str} A
+      = \{ \code{.head} \hastype A,\; \code{.tail} \hastype \code{Str} A \}
+    \end{equation*}
+
+    \begin{align*}
+      & f \hastype \circle A \to \circle A \\
+      & f\; x = \code{let} x^\prime = x \code{in} \bullet x^\prime
+    \end{align*}
+  }
+
+  % \visible<3->{
+  %   \centering
+  %   {\Huge The elimination form for $\circle$ is unnatural.}
+  % }
+\end{frame}
+
+\begin{frame}
+  \centering
+  {\Huge The \texttt{.next} observation changes time.}
+
+  \visible<2->{
+    \begin{equation*}
+      \infer{
+        \Gamma^\text{next}
+        \goal \circle A
+        \proves^n \code{.next} q
+        \synth_k T
+      }{
+        \Gamma
+        \goal A
+        \proves^{\alert{n+1}} q
+        \synth_k T
+      }
+    \end{equation*}
+  }
+  \visible<3->{
+    \begin{equation*}
+      \infer{
+        \Gamma
+        \goal S
+        \proves^n \cdot
+        \synth_{\alert{n}} T
+      }{}
+    \end{equation*}
+  }
+\end{frame}
 
 \begin{frame}
   \frametitle{Goal}
