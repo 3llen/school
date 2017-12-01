@@ -1,4 +1,4 @@
-.PHONY: writeup.pdf
+.PHONY: all
 
-writeup.pdf: writeup.tex
-	lualatex $<
+all:
+	make -C outline-of-proposed-research
