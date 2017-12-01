@@ -1,0 +1,24 @@
+Software systems are an integral part of our infrastructure and our society
+more and more depends on them: Software manages our financial assets, drives
+our cars, and plays a central role in electronic voting.
+Ensuring that these systems are reliable and trustworthy is not only critical
+to our economy and but to the society at large.
+The Beluga project aims to change the way we develop and reason about formal
+specifications of software systems by providing programmers with a language
+containing primitives, high-level abstractions, and tools to directly
+represent, verify, and communicate formal guarantees about software systems.
+This USRA project aims to develop tool support to make it routine work for
+programmers to specify and mechanically verify complex behavioral properties of
+their programs.
+Writing out proofs by hand can quickly become overwhelming to programmers.
+Hence the goal is to automatically discharge as many proofs as possible and to
+develop a framework for writing partial programs and proofs.
+Concretely the goal is to develop an interactive proof environment for Beluga
+together with a test harness which that allows us to test and replay
+interactive proofs.
+Proof search will be organized around interleaving intervals of blocks of
+deterministic inferences and generate partial program fragments.
+Non-determinism in proof search is then resolved by programmers linking and
+composing proof/program fragments.
+This will make it substantially easier to develop formal guarantees and bring
+down the cost of verifying properties about systems.
