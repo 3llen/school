@@ -15,97 +15,92 @@
 
 \begin{document}
 
-As software grows in ubiquity, understanding the properties of software
-products becomes increasingly essential. For life-critical software, in which
-the risks associated with software malfunction are unacceptably high, merely
-testing the software on a large number of cases is insufficient. Instead, how
-can we \emph{be sure} that software does \emph{what it is supposed to do?}
-This question drives my interest in programming languages research.
+Software systems are tightly integrated to our lives: software manages our
+finances, drives our cars, and counts our votes.
+Many applications such as these are \emph{safety-critical},
+meaning that software malfunction is unacceptable due to the high associated
+risks.
+Merely testing the software on a large number of cases is insufficient when one
+wants to be \emph{certain} that the software behaves according to its
+specification.
+In these cases, we should instead prefer to \emph{verify} software using formal
+methods. Ensuring the reliability and trustworthiness of such software systems
+is not only critical to our economy but also to essential to society at large.
 
-One approach to certified programming is to use languages which by their very
-nature provide correctness guarantees. Such languages leverage the Curry-Howard
-correspondence: the \emph{type} of a program corresponds to a
-\emph{proposition} and the program itself thus corresponds to a \emph{proof} of
-that proposition.
-% Hence, typechecking the program amounts to verifying the proof.
-%
-The upshot is that instead of proving a property about \emph{one program}, we
-can instead prove properties about a whole \emph{language} and deduce as
-corollaries the properties of the programs in that language.
-%
-In fact, many programming languages can be modelled using higher-order
-abstract syntax\cite{hoas} as a signature in the Logical Framework LF\cite{lf}:
-Pientka demonstrated\cite{bp-proof-pearl} the convenience of this encoding by
-applying it in the Twelf\cite{twelf} system to investigate a problem from the
-POPLMark challenge\cite{poplmark}.
-Pientka, Cave, et al. later developed the
-Beluga\cite{beluga,subst-beluga,inductive-beluga} system as a framework for
-reasoning about programming languages.
-In Beluga and similar proof frameworks, one models another language and then
-proves properties about it by writing recursive programs.
-The chief innovation of Beluga however is its first-class support for contexts
-and substitutions, which significantly reduces the number of (uninteresting)
-auxiliary proofs that must be written.
+The Beluga project\cite{beluga,inductive-beluga,beluga-2012} aims
+to change the way we write trustworthy software, by
+providing an advanced language and tools for directly representing, verifying,
+and communicating formal guarantees.
+Specifically, this is achieved by using \emph{dependent types}, which allow the
+programmer to encode in the type of the program the specification that the
+program is supposed to satisfy. Hence, the programmer can verify simply by
+typechecking their code that their software satisfies its specification.
+One downside to this approach to certified programming is that many proofs are
+straightforward and frankly uninteresting. Writing out such proofs by hand is
+not only tedious for an experienced programmer, but is also overwhelming for a
+less experienced programmer.
 
-This proposal aims to improve on the state-of-the-art methodologies for the
-development of (certified) programming languages.
-My specific objective is to build a proof search engine capable of
-automatically producing various meta-theoretical proofs.
-By delegating work to the engine, a language researcher can instead focus on
-the trickier proofs that cannot be proved automatically.
-%I will implement this engine as an extension to Beluga, taking advantage of its
-%first-class support for contexts and substitutions.
-%We envision future Beluga users as needing only to write down the proposition
-%in first-order logic to prove as a type in Beluga, and obtaining thanks to our
-%engine a program of that type, i.e. a proof of the proposition.
+My proposed research aims to resolve this downside, improving on the
+state-of-the-art methodologies for the development of certified programs.
+Specifically, I intend to design and implement a proof search engine that will
+be capable of mechanically deriving many proofs. This engine will be integrated
+with Beluga and become a part of its interactive program development mode. In
+this mode, the programmer and the compiler are in a dialogue, in which the
+compiler guides the programmer in writing out the program. The proof search
+engine will be used throughout this dialogue to allow the programmer to skip
+over the obvious parts of the program that can be inferred by the engine.
+Thanks to this engine, the programmer can instead focus on proving the
+trickier, more domain-specific properties.
 
-Previously, Schürmann\cite{schurmann-phd} showed how inductive proofs
-could be automated in a principled way.
-However, his work had some shortcomings: at the time of his work, it was
-unclear how to represent the generated proofs.
-Consequently his engine did not produce reusable proof terms, nor could it take
-in hand-written proofs as hints.
-%Concretely, if a user of this system was able to prove 5 lemmas automatically,
-%but unable to automatically prove a sixth, then there was no way for the user
-%to write that proof by hand while relying on the lemmas automatically proven.
-A specific practical component of the proposed research is to address
-these concerns by using Beluga as the language for representing proofs: I will
-implement my engine as a plug-in for Beluga, and I will extend Schürmann's
-work to take advantage of Beluga's special features.
-
-From a theoretical perspective, it impossible to derive a proof for an
-arbitrary true sentence in first-order logic.
-%Although Gödel showed that first-order logic is \emph{complete}, his proof was
-%non-constructive. Furthermore, no constructive proof can exist, as if one did,
-%then it could be used to implement a program to decide the halting problem.
-It is therefore unavoidable that my proof search engine will, for some true
-sentences as input, be unable to find a proof.
-A specific theoretical component of the proposed research is to provide a
-useful characterization of the kinds of theorems that my engine would be
-capable of proving.
-My hypothesis is that my engine will be capable of proving more kinds of
-theorems than what Schürmann's engine could, as we now have a better
-understanding of proofs theory.
-
+% From a theoretical perspective, it impossible to derive a proof for an
+% arbitrary true sentence in first-order logic.
+% %Although Gödel showed that first-order logic is \emph{complete}, his proof was
+% %non-constructive. Furthermore, no constructive proof can exist, as if one did,
+% %then it could be used to implement a program to decide the halting problem.
+% It is therefore unavoidable that my proof search engine will, for some true
+% sentences as input, be unable to find a proof.
+% A specific theoretical component of the proposed research is to provide a
+% useful characterization of the kinds of theorems that my engine would be
+% capable of proving.
+% My hypothesis is that the engine will be capable of proving more kinds of
+% theorems than what Schürmann's engine could, as we now have a better
+% understanding of proof theory and coinduction.
+% 
 I will base my engine on the sequent calculus, which describes provability.
 However, this calculus cannot be used directly as a proof search strategy since
 it is highly non-deterministic.
-Baelde et al. ran into the same problem in the development of the Tac theorem
-prover\cite{tac}. To address this issue, I intend to use the same strategy they
-did, called \emph{focusing}, which organizes the rules of the sequent calculus
-into two phases. This eliminates some of the non-determinism.
+To address this issue, I intend to use \emph{focusing}, which organizes the
+search by first applying blocks of deterministic inferences and then generating
+partial program fragments.
+The programmer then resolves non-determinism by linking and composing these
+fragments. This is exactly the dialogue mentioned earlier.
+
+My goal is achievable:
+Schürmann\cite{schurmann-phd} previously showed how inductive proofs
+could be automated in a principled way.
+However, his work had some shortcomings: at the time of his work, it was
+unclear how to represent the generated proofs.
+Concretely, if the programmer could prove automatically five of six
+propositions, but not the sixth, then there was no way for the programmer to
+write the sixth by hand while relying on the five proofs that were derived
+automatically.
+Furthermore, Schürmann's method only applied to induction, whereas I intend to
+make my engine suitable for coinduction as well. This would allow for the
+automatic proving of properties not only about finite data such as lists or
+derivations, but also about infinite codata using as streams and program
+traces.
 
 The applicability of the proposed research is broad.
 Although I concretely intend to develop this engine as an extension to Beluga,
 the core algorithm will be independent of the Beluga system and will be
 transferable to other systems.
-The engine will facilitate proving properties of languages, and as such
-will facilitate the development of new languages.
-In life-critical applications, code correctness is essential, as software
-malfunction cannot be tolerated.
-Ultimately, concepts from research languages trickle down into mainstream
-languages, and these concepts will enable software engineers to write correct
-code with confidence.
+I believe that my goal is achievable and well-suited to a masters: the research
+involves both a significant theoretical component in which I will study the
+kinds of theorems provable by my engine and a considerable practical component
+in which I will build and test the engine on numerous theorems.
+The style of interactive development that my engine will give rise to will
+enable programmers to mechanize their proofs, so they can focus their energy on
+their application and not on the proof details.
 
 \pagebreak
 \printbibliography
