@@ -12,4 +12,6 @@ all:
 	make -C comp-621
 	make -C comp-523
 	make -C comp-525
-	make -C fqrnt-app
+	make -C grants/nserc
+	make -C grants/frqnt
+	make -C mcgill-msc-app/personal-statement
