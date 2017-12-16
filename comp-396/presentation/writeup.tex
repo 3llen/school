@@ -147,9 +147,9 @@
   \visible<3->{
     \begin{equation*}
       \infer{
-        \Gamma \proves^{n+1} M\mathtt{.next} \hastype A
+        \Gamma \proves^{\alert<4>{n+1}} M\mathtt{.next} \hastype A
       }{
-        \Gamma \proves^n M \hastype \circle A
+        \Gamma \proves^{\alert<4>{n}} M \hastype \circle A
       }
     \end{equation*}
   }
@@ -172,7 +172,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{We need to go back... to the future.}
+  \frametitle{\sout{Be} \alert{observe} the change you wish to see in the world}
 
   \only<1>{
     \begin{equation*}
@@ -266,7 +266,7 @@
       \infer{
         \Gamma \proves^{\alert<3>{n}} \code{fun} q_i \fto t_i \hastype S
       }{
-        \Gamma^\prime \goal S \proves^n q \synth_k T
+        \Gamma^\prime \goal S \proves^{\alert<3>{n}} q_i \synth_{\alert<3>{k}} T_i
         &
         \Gamma, \Gamma^\prime \proves^{\alert<3>{k}} t \hastype T
       }
@@ -300,13 +300,11 @@
         \alert<6->{\unk} \only<7->{\com{\square B}}
       }
       \only<8->{
-        \code{map} fs\mathtt{.tail.next}\; xs\mathtt{.tail.next}
+        \alert<10>{\code{map} fs\mathtt{.tail.next}\; xs\mathtt{.tail.next}} \\
       }
     }
-  \end{align*}
-
-  \visible<9->{
-    \begin{align*}
+    \visible<9->{
+      & ~ \\
       & \code{map} \hastype
       \code{Str} (A \to B) \to \code{Str} A \to \code{Str} B \\
       %
@@ -314,7 +312,123 @@
       fs\mathtt{.head}\; xs\mathtt{.head} \\
       %
       & \code{map} fs\; xs\; \mathtt{.tail} =
-      \code{map} fs\mathtt{.tail}\; xs\mathtt{.tail}
+        \alert<10>{\code{map} fs\mathtt{.tail}\; xs\mathtt{.tail}}
+    }
+  \end{align*}
+\end{frame}
+
+\begin{frame}
+  \centering
+  \alert{\Huge Yes, this is an improvement.}
+
+  \includegraphics[width=0.9\textwidth]{doc-brown-wow.jpg}
+  \pause
+
+  But something is amiss...
+\end{frame}
+
+\begin{frame}
+  \frametitle{Pulling a fast one at 88mph}
+
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{delorean-flames.png}
+  \end{center}
+
+  \pause
+
+  \begin{itemize}[<+->]
+    \item
+      \alert{When} is the variable \texttt{map} available, in the recursive call?
+    \item
+      POPL'14 uses (co)iterators for recursion and remarks that
+      ``these [iterators] are in some sense timeless terms (they will be used
+      at multiple points in time).''
+    \item
+      Our solution: explicit notion of \emph{stability} inspired by
+      Krishnaswami 2013.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Spacetime is becoming unstable, Marty!}
+
+  \only<1>{
+    \begin{align*}
+      \boxed{\Gamma \proves t \hastype A}\quad&\text{stable typing judgment}\\
+      \boxed{\Gamma \proves^n t \hastype A}\quad&\text{timed typing judgment}
+    \end{align*}
+  }
+
+  \only<2-4>{
+    \begin{equation*}
+      \infer[\text{whenever}]{
+        \Gamma \proves^{\alert<3>{n}} \mathtt{unstable}\; t \hastype A
+      }{
+        \Gamma \proves t \hastype A
+      }
+      \quad
+      \quad
+      \infer[\text{stabilize}_{\alert<3>{n}}]{
+        \Gamma \proves \mathtt{stable}\; t \hastype A
+      }{
+        \Gamma \proves^{\alert<3>{n}} t \hastype A
+      }
+    \end{equation*}
+    %
+    \begin{center}
+      \visible<4->{
+        Similar to $\forall$ introduction and elimination.
+      }
+    \end{center}
+  }
+
+  \only<5->{
+    \visible<5->{
+      \begin{equation*}
+          \text{Context } \Gamma \quad::=\;
+          \cdot \galt \Gamma, x \hastype A \galt \Gamma, x \hastype A^n
+      \end{equation*}
+    }
+    \visible<6->{
+      \begin{equation*}
+        \infer{
+          \Gamma \proves^n \texttt{rec}\;f.\; t \hastype T
+        }{
+          \Gamma, \alert<7>{f \hastype T} \proves^n t \hastype T
+        }
+      \end{equation*}
+    }
+  }
+\end{frame}
+
+\begin{frame}
+  \frametitle{\texttt{map} revisited, again}
+
+  \only<1-2>{
+    \begin{align*}
+      & \mathtt{map} \equiv \mathtt{rec}\; \mathtt{map}. \\
+      & \mathtt{fun}\; fs\; xs\; \mathtt{.head}
+      = fs\mathtt{.head}\; xs\mathtt{.head} \\
+      %
+      &\orcase\; fs\; xs\; \mathtt{.tail}\; \mathtt{.next}
+      = \\
+      &\hphantom{\mathtt{fun}}\;
+      \visible<2>{
+        (\mathtt{unstable}\; \mathtt{map})\;
+        fs\mathtt{.tail.next}\;
+        xs\mathtt{.tail.next}
+      }
+    \end{align*}
+  }
+  \only<3->{
+    \begin{align*}
+      & \mathtt{map}\; fs\; xs\; \mathtt{.head} =
+      fs\mathtt{.head}\; xs\mathtt{.head} \\
+      %
+      & \mathtt{map}\; fs\; xs\; \mathtt{.tail}\; \mathtt{.next} = \\
+      & \hphantom{\mathtt{map}}
+        (\alert<4>{\mathtt{unstable}}\; \mathtt{map})\;
+        fs\mathtt{.tail.next}\; xs\mathtt{.tail.next}
     \end{align*}
   }
 \end{frame}
@@ -322,16 +436,22 @@
 \begin{frame}
   \centering
   \alert{\Huge The future is now!} \\
-  \pause
-  (Time is codata. Same thing really.) \\
-  \pause
-  \begin{itemize}
-    \item Finish implementation of a prototype language.
-    \item Prove soundness/completeness w.r.t. the POPL'14 system.
-  \end{itemize}
-  \pause
+  Convenient leak-free functional reactive programming is here!
 
-  \includegraphics[width=0.9\textwidth]{doc-brown-wow.jpg}
+  \includegraphics[width=0.75\textwidth]{doc-brown-happy.jpg}
+
+  \pause 
+  \begin{itemize}
+    \item
+      Flesh out the operational semantics, and syntactic termination criteria.
+
+    \item
+      Study the possibility of inference for \texttt{unstable} and
+      \texttt{.next}.
+
+    \item
+      Complete the prototype implementation.
+  \end{itemize}
 \end{frame}
 
   % \only<4>{
