@@ -1,0 +1,914 @@
+\documentclass[11pt]{article}
+
+\author{Jacob Thomas Errington (260636023)}
+\title{Assignment \#5\\Language-based security -- COMP 523}
+\date{30 November 2017}
+
+\usepackage[geometry,questions]{jakemath}
+
+\begin{document}
+
+\maketitle
+
+\question{Evaluating copattern matching with stacks}
+
+\begin{enumerate}
+  \item
+    We extend the definition of stacks to also allow storing intermediate
+    expressions when we evaluate pairs and finite data.
+
+    \begin{align*}
+      \text{Stack}\; E\quad
+      \operatorname{::=} \cdots
+      \alt (c_i\; \bullet) E
+      \alt (\bullet, s) E
+      \alt (v, \bullet) E
+    \end{align*}
+
+  \item
+    We extend the rules of stepping configurations to also step pairs and
+    finite data.
+
+    \begin{align*}
+      (t, s); E &\evalto t; (\bullet, s) E \\
+      v; (\bullet, s) E &\evalto (v, s); E \\
+      (v, s); E &\evalto s; (v, \bullet) E \\
+      v_2; (v_1, \bullet) E &\evalto (v_1, v_2) ; E \\
+      c_i\; t; E &\evalto t; (c_i\; \bullet) E \\
+      v; (c_i\; \bullet) E &\evalto c_i\; v ; E
+    \end{align*}
+
+  \item
+    We extend the typing rules for stacks to handle the new intermediate
+    states.
+
+    \begin{align*}
+      \infer{
+        T_1 \proves (\bullet, s) E \hastype S
+      }{
+        \proves s \hastype T_2
+        &
+        T_1 \times T_2 \proves E \hastype S
+      }
+      &\quad
+      \infer{
+        T_2 \proves (t, \bullet) E \hastype S
+      }{
+        \proves t \hastype T_1
+        &
+        T_1 \times T_2 \proves E \hastype S
+      } \\
+      %
+      \infer{
+        [\mu X.\; D/X]T_i \proves (c_i\; \bullet) E \hastype S
+      }{
+        \mu X.\; D \proves E \hastype S
+      }
+      &\quad
+      ~
+    \end{align*}
+    %
+    where $D = \langle c_1\hastype T_1,\ldots,c_n\hastype T_n \rangle$.
+
+    (Our typing rules are slightly more general than they need to be since we write
+    $t \hastype T_1$ instead of $v \hastype T_1$.)
+
+  \item
+    We extend the proof of type preservation for the new rules.
+
+    \begin{prop}[Type preservation]
+      If $\mathcal{D} \deduc \proves t; E \hastype S$
+      and $t;E \evalto t^\prime ; E^\prime$,
+      then $\proves t^\prime ; e^\prime \hastype S$.
+    \end{prop}
+
+    \begin{proof}
+      By case analysis of the stepping relation.
+
+      \begin{description}
+        \item[Case]
+          $(t, s); E \evalto t; (\bullet, s) E$.
+
+          Therefore $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{%
+              \proves (t, s) ; E \hastype S
+            }{%
+              \deduce[\mathcal{D}^\prime]{\proves (t, s) \hastype T}{}
+              &
+              \deduce[\mathcal{F}]{T \proves E \hastype S}{}
+            }
+          \end{equation*}
+
+          We invert $\mathcal{D}^\prime$ to
+          deduce $\mathcal{D}_1 \deduc \proves t \hastype T_1$
+          and $\mathcal{D}_2 \deduc \proves s \hastype T_2$,
+          and we discover that $T = T_1 \times T_2$.
+
+          Then we construct a derivation
+          %
+          \begin{equation*}
+            \infer{%
+              \proves t ; (\bullet, s) E \hastype S
+            }{%
+              \deduce[\mathcal{D}_1]{\proves t \hastype T_1}{}
+              &
+              \infer{%
+                T_1 \proves (\bullet, s) E \hastype S
+              }{%
+                \deduce[\mathcal{D}_2]{\proves s \hastype T_2}{}
+                &
+                \deduce[\mathcal{F}]{T_1 \times T_2 \proves E \hastype S}{}
+              }
+            }
+          \end{equation*}
+          %
+          as required.
+
+        \item[Case]
+          $v; (\bullet, s) \evalto (v, s) ; E$.
+
+          Therefore $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{%
+              v ; (\bullet, s) E \hastype S
+            }{%
+              \deduce[\mathcal{D}^\prime]{\proves v \hastype T}{}
+              &
+              \deduce[\mathcal{F}]{T \proves (\bullet, s) E \hastype S}{}
+            }
+          \end{equation*}
+
+          We invert $\mathcal{F}$ to deduce
+          %
+          \begin{equation*}
+            \infer{%
+              T_1 \proves (\bullet, s) E \hastype S
+            }{%
+              \deduce[\mathcal{F}_1]{\proves s \hastype T_2}{}
+              &
+              \deduce[\mathcal{F}_2]{T_1 \times T_2 \proves E \hastype S}{}
+            }
+          \end{equation*}
+          %
+          and we discover $T = T_1$.
+
+          Then we construct a derivation
+          %
+          \begin{equation*}
+            \infer{%
+              \proves (v, s) ; E \hastype S
+            }{%
+              \infer{%
+                \proves (v, s) \hastype T_1 \times T_2
+              }{%
+                \deduce[\mathcal{D}^\prime]{\proves v \hastype T_1}{}
+                &
+                \deduce[\mathcal{F}_1]{\proves s \hastype T_2}{}
+              }
+              &
+              \deduce[\mathcal{F}_2]{T_1 \times T_2 \proves E \hastype S}{}
+            }
+          \end{equation*}
+          %
+          as required.
+
+        \item[Case]
+          $(v, s) ; E \evalto s ; (v, \bullet) E$.
+
+          Therefore $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{%
+              \proves (v, s) ; E \hastype S
+            }{%
+              \deduce[\mathcal{D}^\prime]{(v,s) \hastype T}{}
+              &
+              \deduce[\mathcal{F}]{T \proves E \hastype S}{}
+            }
+          \end{equation*}
+
+          We invert $\mathcal{D}^\prime$ to get
+          %
+          \begin{equation*}
+            \infer{%
+              \proves (v, s) \hastype T_1 \times T_2
+            }{%
+              \deduce[\mathcal{D}_1]{\proves v \hastype T_1}{}
+              &
+              \deduce[\mathcal{D}_2]{\proves s \hastype T_2}{}
+            }
+          \end{equation*}
+          %
+          and we discover $T = T_1 \times T_2$.
+          Therefore $\mathcal{F} \deduc T_1 \times T_2 \proves E \hastype S$.
+
+          We construct a derivation.
+          %
+          \begin{equation*}
+            \infer{%
+              \proves s ; (v, \bullet) E \hastype S
+            }{%
+              \deduce[\mathcal{D}_2]{\proves s \hastype T_2}{}
+              &
+              \infer{%
+                T_2 \proves (v, \bullet) E \hastype S
+              }{%
+                \deduce[\mathcal{D}_1]{\proves v \hastype T_1}{}
+                &
+                \deduce[\mathcal{F}]{T_1 \times T_2 \proves E \hastype S}{}
+              }
+            }
+          \end{equation*}
+          %
+          as required.
+
+        \item[Case]
+          $v_2; (v_1, \bullet) E \evalto (v_1, v_2) ; E$.
+
+          Therefore $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{
+              \proves v_2; (v_1, \bullet) E \hastype S
+            }{
+              \deduce[\mathcal{D}^\prime]{\proves v_2 \hastype T}{}
+              &
+              \deduce[\mathcal{F}]{T \proves (v_1, \bullet) \hastype S}{}
+            }
+          \end{equation*}
+
+          We invert $\mathcal{F}$ to deduce
+          %
+          \begin{equation*}
+            \infer{
+              T_2 \proves (v_1, \bullet) E \hastype S
+            }{
+              \deduce[\mathcal{F}_1]{\proves v_1 \hastype T_1}{}
+              &
+              \deduce[\mathcal{F}_2]{T_1 \times T_2 \proves E \hastype S}{}
+            }
+          \end{equation*}
+          %
+          and we discover that $T = T_2$.
+
+          We construct a derivation
+          %
+          \begin{equation*}
+            \infer{
+              \proves (v_1, v_2) ; E \hastype S
+            }{
+              \infer{
+                \proves (v_1, v_2) \hastype T_1 \times T_2
+              }{
+                \deduce[\mathcal{F}_1]{\proves v_1 \hastype T_1}{}
+                &
+                \deduce[\mathcal{D}^\prime]{\proves v_2 \hastype T_2}{}
+              }
+              &
+              \deduce[\mathcal{F}_2]{T_1 \times T_2 \proves E \hastype S}{}
+            }
+          \end{equation*}
+          %
+          as required.
+
+        \item[Case]
+          $c_i\; t; E \evalto t; (c_i\;\bullet) E$.
+
+          Therefore $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{%
+              \proves c_i\; t ; E \hastype S
+            }{%
+              \deduce[\mathcal{D}^\prime]{c_i\; t \hastype T}{}
+              &
+              \deduce[\mathcal{F}]{T \proves E \hastype S}{}
+            }
+          \end{equation*}
+
+          We invert $\mathcal{D}^\prime$ to deduce
+          %
+          \begin{equation*}
+            \infer{%
+              \proves c_i \; t \hastype \mu X.\; D
+            }{%
+              \deduce[\mathcal{D}^\dprime]{%
+                \proves t \hastype [\mu X.\; D/X]T_i
+              }{}
+            }
+          \end{equation*}
+          %
+          and we discover that $T = \mu X.\; D$
+          where
+          $D = \langle c_1 \hastype T_1, \ldots, c_n \hastype T_n \rangle$.
+
+          We construct a derivation
+          %
+          \begin{equation*}
+            \infer{%
+              \proves t ; (c_i\;\bullet) E \hastype S
+            }{%
+              \deduce[\mathcal{D}^\dprime]{%
+                \proves t \hastype [\mu X.\; D / X]T_i%
+              }{}
+              &
+              \infer{%
+                [\mu X.\; D/X]T_i \proves (c_i\;\bullet)E\hastype S
+              }{
+                \deduce[\mathcal{F}]{\mu X.\; D \proves E \hastype S}{}
+              }
+            }
+          \end{equation*}
+          %
+          as required.
+
+        \item[Case]
+          $v;(c_i\;\bullet)E \evalto c_i\; v ; E$.
+          Therefore $\mathcal{D}$ is of the form
+
+          %
+          \begin{equation*}
+            \infer{
+              \proves v; (c_i\;\bullet) E \hastype S
+            }{
+              \deduce[\mathcal{D}^\prime]{
+                \proves v \hastype T
+              }{}
+              &
+              \deduce[\mathcal{F}]{
+                T \proves (c_i\;\bullet) E \hastype S
+              }{}
+            }
+          \end{equation*}
+
+          We invert $\mathcal{F}$ to get
+          %
+          \begin{equation*}
+            \infer{
+              [\mu X.\; D/X]T_i \proves (c_i\;\bullet)E \hastype S
+            }{
+              \deduce[\mathcal{F}^\prime]{\mu X.\; D \proves E \hastype S}{}
+            }
+          \end{equation*}
+          %
+          and we discover $T = [\mu X.\; D]T_i$.
+
+          Then we construct a derivation
+          %
+          \begin{equation*}
+            \infer{
+              \proves c_i\; v ; E \hastype S
+            }{
+              \infer{
+                \proves c_i\; v \hastype \mu X. D
+              }{
+                \deduce[\mathcal{D}^\prime]{
+                  \proves v \hastype [\mu X.\; D/X]T_i
+                }{}
+              }
+              &
+              \deduce[\mathcal{F}^\prime]{
+                \mu X.\; D \proves E \hastype S
+              }{}
+            }
+          \end{equation*}
+          %
+          as required.
+      \end{description}
+
+    \end{proof}
+\end{enumerate}
+
+\question{Let-polymorphism}
+
+\begin{enumerate}
+  \item
+    We prove type preservation for the new language using a big-step semantics.
+
+    First, we state and prove the necessary substitution lemma.
+    %
+    \begin{lem}[Substitution]
+      If $\Gamma \proves N \hastypesc S$ and
+      $\Gamma, x \hastypesc S, \Gamma^\prime \proves M \sim T$,
+      then $\Gamma, \Gamma^\prime \proves [N/x]M \sim T$,
+      where $\sim$ is either $\hastype$ or $\hastypesc$.
+    \end{lem}
+
+    \begin{proof}
+      By lexicographic induction on $M$ and the size of the derivation
+      $\mathcal{D} \deduc
+      \Gamma, x \hastypesc S, \Gamma^\prime
+      \proves M \sim T$.
+
+      \begin{description}
+        \item[Case]
+          The derivation $\mathcal{D}$ is for a type schema, so we have
+          %
+          $
+          \mathcal{D} \deduc
+          \Gamma, x \hastypesc S, \Gamma^\prime \proves M \hastypesc S
+          $
+          %
+          \begin{description}
+            \item[Subcase]
+              we have $\mathcal{D}$ of the form
+              %
+              \begin{equation*}
+                \infer{
+                  \Gamma, x \hastypesc S^\prime, \Gamma^\prime \proves M \hastypesc T
+                }{
+                  \deduce[\mathcal{D}^\prime]{
+                    \Gamma, x \hastypesc S^\prime, \Gamma^\prime \proves M \hastype T
+                  }{}
+                }
+              \end{equation*}
+
+              By the induction hypothesis on $\mathcal{D}^\prime$ we deduce
+              $\mathcal{E}^\prime \deduc \Gamma, x \hastypesc S^\prime, \Gamma^\prime \proves [N/x]M \hastype T$.
+              
+              We construct
+              %
+              \begin{equation*}
+                \infer{
+                  \Gamma, x \hastypesc S^\prime, \Gamma^\prime \proves [N/x]M \hastypesc T
+                }{
+                  \deduce[\mathcal{E}^\prime]{
+                    \Gamma, x \hastypesc S^\prime, \Gamma^\prime \proves [N/x]M \hastype T
+                  }{}
+                }
+              \end{equation*}
+              %
+              as required.
+
+            \item[Subcase]
+              we have $\mathcal{D}$ of the form
+              %
+              \begin{equation*}
+                \infer{
+                  \Gamma, x \hastypesc S^\prime, \Gamma^\prime \proves M \hastypesc \forall \alpha.\; S
+                }{
+                  \deduce[\mathcal{D}^\prime]{
+                    \Gamma, x \hastypesc S^\prime, \Gamma^\prime \proves M \hastypesc S
+                  }{}
+                }
+              \end{equation*}
+
+              By the induction hypothesis on $\mathcal{D}^\prime$ we deduce
+              $\mathcal{E}^\prime \deduc \Gamma, x \hastypesc S^\prime, \Gamma^\prime \proves [N/x]M \hastypesc S$.
+
+              We construct
+              %
+              \begin{equation*}
+                \infer{
+                  \Gamma, x \hastypesc S^\prime, \Gamma^\prime \proves [N/x]M \hastypesc \forall \alpha.\; S
+                }{
+                  \Gamma, x \hastypesc S^\prime, \Gamma^\prime \proves [N/x]M \hastypesc S
+                }
+              \end{equation*}
+              %
+              as required.
+          \end{description}
+
+        \item[Case]
+          The derivation $\mathcal{D}$ is for a type, so we have
+          $
+          \mathcal{D} \deduc \Gamma, x \hastypesc S, \Gamma^\prime
+          \proves M \hastype T
+          $
+          \begin{description}
+            \item[Subcase]
+              $M = y$ is a variable other than $x$.
+
+              Then we have
+              %
+              $\Gamma, x \hastypesc S, \Gamma^\prime \proves y \hastype T$.
+
+              We can strengthen the context, since $x$ is unused, giving us
+              %
+              $\Gamma, \Gamma^\prime \proves y \hastype T$.
+
+              Finally, by definition of substitution we get
+              %
+              $\Gamma, \Gamma^\prime \proves [N/x]y \hastype T$,
+              %
+              as required.
+
+            \item[Subcase]
+              $M = x$ is the variable we want to substitute.
+
+              Then we have by assumption
+              %
+              $\Gamma, x \hastypesc S, \Gamma^\prime \proves x \hastype T$,
+              %
+              which must be obtained by the variable rule, so by inversion we
+              obtain $\mathcal{E} \deduc S \inst T$.
+
+              By a lemma\footnotemark{} we deduce from $\mathcal{E}$ that
+              $\Gamma \proves N \hastype T$, and by weakening that
+              $\Gamma, \Gamma^\prime \proves N \hastype T$.
+              %
+              \footnotetext{%
+                \emph{If $\Gamma \proves N \hastypesc S$ and $S \inst T$, then
+                $\Gamma \proves N \hastype T$.}
+                This is easy to prove by induction on the instantiation
+                derivation.%
+              }
+
+              Finally, by definition of substitution we get
+              %
+              $\Gamma, \Gamma^\prime \proves [N/x]x \hastype T$.
+
+            \item[Subcase]
+              $M = \lambda y. M^\prime$ is an abstraction.
+
+              Without loss of generality, we assume $y \neq x$ and $y$ is not free
+              in $N$; this can be achieved by renaming $y$ in the abstraction if
+              necessary.
+
+              Then we have
+              %
+              $\mathcal{D} \deduc \Gamma, x \hastypesc S, \Gamma^\prime
+              \proves \lambda y. M^\prime \hastype T$.
+
+              By inverting $\mathcal{D}$ we deduce
+              %
+              \begin{equation*}
+                \infer{
+                  \Gamma, x\hastypesc S, \Gamma^\prime
+                  \proves \lambda y. M^\prime \hastype T_1 \to T_2
+                }{
+                  \deduce[\mathcal{D}^\prime]{
+                    \Gamma, x\hastypesc S, y\hastypesc T_1, \Gamma^\prime
+                    \proves M^\prime \hastype T_2
+                  }{}
+                }
+              \end{equation*}
+              %
+              and we discover that $T = T_1 \to T_2$.
+
+              By the induction hypothesis on $\mathcal{D}^\prime$ we deduce that
+              $\mathcal{E}^\prime \deduc \Gamma, y \hastypesc T_1, \Gamma^\prime
+              \proves [N/x]M^\prime \hastype T_2$.
+
+              We construct a derivation $\mathcal{E}$
+              %
+              \begin{equation*}
+                \infer{
+                  \Gamma, \Gamma^\prime
+                  \proves \lambda y. [N/x]M^\prime \hastype T_1 \to T_2
+                }{
+                  \deduce[\mathcal{E}^\prime]{
+                    \Gamma, y\hastypesc T_1, \Gamma^\prime
+                    \proves [N/x]M^\prime \hastype T_2
+                  }{}
+                }
+              \end{equation*}
+
+              Since $y \neq x$ and we assume $y$ is not free in $N$, we hoist the
+              substitution over the $\lambda$, so
+              $\Gamma, \Gamma^\prime
+              \proves [N/x]\lambda y. M^\prime \hastype T_1 \to T_2$,
+              as required.
+
+            \item[Subcase]
+              $M = M_1 M_2$ is an application.
+
+              This case is uninteresting, since it just applies the induction
+              hypothesis twice and repackages the results, so I won't write out the
+              full proof.
+
+            \item[Subcase]
+              $M = \mathtt{let}\; y = M_1 \;\mathtt{in}\; M_2$
+              is a let construct.
+
+              We assume without loss of generality that $y$ is not free in $N$ and
+              that $x \neq y$, as we can rename variables.
+
+              Then we have
+              $\mathcal{D} \deduc
+              \Gamma, x \hastypesc S, \Gamma^\prime
+              \proves \mathtt{let}\; y = M_1 \;\mathtt{in}\; M_2
+              \hastype T$.
+
+              By inverting $\mathcal{D}$ we deduce that
+              %
+              \begin{equation*}
+                \infer{
+                  \Gamma, x \hastypesc S, \Gamma^\prime
+                  \proves \mathtt{let}\; y = M_1 \;\mathtt{in}\; M_2
+                  \hastype T
+                }{
+                  \deduce[\mathcal{D}_1]{
+                    \Gamma, x \hastypesc S, \Gamma^\prime
+                    \proves M_1 \hastypesc S^\prime
+                  }{}
+                  &
+                  \deduce[\mathcal{D}_2]{
+                    \Gamma, x \hastypesc S, \Gamma^\prime, y \hastypesc S^\prime
+                    \proves M_2 \hastype T
+                  }{}
+                }
+              \end{equation*}
+
+              By the induction hypothesis on $\mathcal{D}_1$ we deduce
+              %
+              \begin{equation*}
+                \deduce[\mathcal{E}_1]{
+                  \Gamma, \Gamma^\prime \proves [N/x]M_1 \hastypesc S^\prime
+                }{}
+              \end{equation*}
+
+              By the induction hypothesis on $\mathcal{D}_2$ we deduce
+              %
+              \begin{equation*}
+                \deduce[\mathcal{E}_2]{
+                  \Gamma, \Gamma^\prime, y \hastypesc S^\prime \proves [N/x]M_2
+                  \hastype T
+                }{}
+              \end{equation*}
+
+              We construct a derivation
+              %
+              \begin{equation*}
+                \infer{
+                  \Gamma, \Gamma^\prime
+                  \proves \mathtt{let}\; y = [N/x]M_1 \;\mathtt{in}\; [N/x]M_2
+                  \hastype T
+                }{
+                  \deduce[\mathcal{E}_1]{
+                    \Gamma, \Gamma^\prime \proves [N/x]M_1 \hastypesc S^\prime
+                  }{}
+                  &
+                  \deduce[\mathcal{E}_2]{
+                    \Gamma, \Gamma^\prime, y \hastypesc S^\prime \proves [N/x]M_2
+                    \hastype T
+                  }{}
+                }
+              \end{equation*}
+
+              Since we assume that $y$ is not free in $N$ and that $y \neq x$, we
+              can hoist the substitutions out of the \texttt{let} to get
+              $
+              \Gamma, \Gamma^\prime
+              \proves [N/x] \mathtt{let}\; y = M_1 \;\mathtt{in}\; M_2
+              \hastype T
+              $
+              by the definition of substitution, as required.
+          \end{description}
+      \end{description}
+    \end{proof}
+
+    \begin{prop}[Type preservation]
+      If $\Gamma \proves t \sim T$ and $t \evalbig v$,
+      then $\Gamma \proves v \sim T$.
+    \end{prop}
+
+    \begin{proof}
+      By lexicographic induction on the evaluation $t \evalbig v$
+      and the typing $\Gamma \proves t \sim T$.
+
+      We need to be able to use the induction hypothesis on the schema typing
+      judgment (in the case for \texttt{let}), so we generalize the theorem to
+      account for this. We proceed in a similar fashion as for the substitution
+      lemma, by first checking whether the typing is for a schema or for a
+      type: in the former case we simply apply the induction hypothesis until
+      we hit the bottom and switch back to the main induction on the
+      evaluation.
+
+      We will not write out the cases for the schema typing since they are
+      tedious and essentially the same as for the substitution lemma, and
+      instead we will focus on the evaluation derivation, with ordinary typing.
+
+      \begin{description}
+        \item[Case]
+          $\infer{\lambda x. t \evalbig \lambda x. t}{}$
+
+          Then there is nothing to do, since $t = v$.
+
+        \item[Case]
+          the evaluation is of the form
+          %
+          \begin{equation*}
+            \infer{
+              t\; s \evalbig v
+            }{
+              \deduce[\mathcal{E}_1]{t \evalbig \lambda x. t^\prime}{}
+              &
+              \deduce[\mathcal{E}_2]{s \evalbig v^\prime}{}
+              &
+              \deduce[\mathcal{E}_3]{[v^\prime/x]t^\prime \evalbig v}{}
+            }
+          \end{equation*}
+
+          We have $\Gamma \proves t\; s \hastype T$ by assumption.
+          By inversion we get
+          %
+          \begin{equation*}
+            \infer{
+              \Gamma \proves t\; s \hastype T
+            }{
+              \deduce[\mathcal{D}_1]{
+                \Gamma \proves t \hastype T^\prime \to T
+              }{}
+              &
+              \deduce[\mathcal{D}_2]{
+                \Gamma \proves s \hastype T^\prime
+              }{}
+            }
+          \end{equation*}
+
+          By the induction hypothesis on $\mathcal{D}_1$ and $\mathcal{E}_1$
+          deduce
+          $\mathcal{F}_1 \deduc
+          \Gamma \proves \lambda x.t^\prime \hastype T^\prime \to T$.
+
+          By the induction hypothesis on $\mathcal{D}_2$ and $\mathcal{E}_2$
+          deduce
+          $\mathcal{F}_2 \deduc
+          \Gamma \proves v^\prime \hastype T^\prime$.
+
+          By inverting $\mathcal{F}_1$,
+          deduce
+          $\mathcal{F}_1^\prime \deduc
+          \Gamma, x \hastypesc T^\prime \proves t^\prime \hastype T$.
+
+          Construct
+          $\mathcal{F}_2^\prime \deduc
+          \Gamma \proves v^\prime \hastypesc T^\prime$ by
+          applying rule $\mathqd{tpsc-base}$ to $\mathcal{F}_2$.
+
+          By the substitution lemma on $\mathcal{F}_2^\prime$ and
+          $\mathcal{F}_1^\prime$, deduce
+          $\mathcal{F} \deduc
+          \Gamma \proves [v^\prime/x]t^\prime \hastype T$.
+
+          By the induction hypothesis on $\mathcal{F}$ and $\mathcal{E}_3$,
+          deduce that $\Gamma \proves v \hastype T$ as required.
+
+        \item[Case]
+          the evaluation is of the form
+          %
+          \begin{equation*}
+            \infer{
+              \mathtt{let}\; x = t_1 \;\mathtt{in}\; t_2 \evalbig v
+            }{
+              \deduce[\mathcal{E}_1]{t_1 \evalbig v^\prime}{}
+              &
+              \deduce[\mathcal{E}_2]{[v^\prime/x]t_2 \evalbig v}{}
+            }
+          \end{equation*}
+
+          We have
+          $\Gamma \proves \mathtt{let}\; x = t_1 \;\mathtt{in}\; t_2 \hastype
+          T$ by assumption.
+          By inversion, deduce
+          %
+          \begin{equation*}
+            \infer{
+              \Gamma \proves
+              \mathtt{let}\; x = t_1 \;\mathtt{in}\; t_2 \hastype T
+            }{
+              \deduce[\mathcal{D}_1]{\Gamma \proves t_1 \hastypesc S}{}
+              &
+              \deduce[\mathcal{D}_2]{
+                \Gamma, x \hastypesc S \proves t_2 \hastype T
+              }{}
+            }
+          \end{equation*}
+
+          By the induction hypothesis on $\mathcal{E}_1$ and $\mathcal{D}_1$,
+          deduce $\mathcal{F}^\prime \deduc v^\prime \hastypesc S$.
+
+          By the substitution lemma on $\mathcal{F}^\prime$ and
+          $\mathcal{D}_2$, deduce
+          $\mathcal{D}^\prime \deduc
+          \Gamma \proves [v^\prime/x]t_2 \hastype T$.
+
+          By the induction hypothesis on $\mathcal{E}_2$ and
+          $\mathcal{D}^\prime$, deduce
+          $\mathcal{F} \deduc
+          \Gamma \proves v \hastype T$, as required.
+      \end{description}
+    \end{proof}
+
+  \item
+    \newcommand{\phts}{\proves_{\hastypesc}}
+    %
+    We state the theorem that asserts the equivalence between these two type
+    assignment systems.
+
+    Note that we write $\phts$ for the system involving type schemas
+    and simply write $\proves$ for the system involving substitutions.
+
+    \begin{prop}
+      $\Gamma \phts t \hastype T$ if and only if $\Gamma^- \proves t \hastype T$.
+    \end{prop}
+    %
+    where $\Gamma^-$ is defined by dropping any schema bindings that involve
+    quantifications.
+    %
+    \begin{align*}
+      (\cdot)^- &= \cdot \\
+      (\Gamma, x \hastypesc T)^- &= \Gamma^-, x \hastype T \\
+      (\Gamma, x \hastypesc \forall \alpha.\; S)^- &= \Gamma^-
+    \end{align*}
+
+  \item
+    We prove the easy direction of this equivalence.
+
+    \begin{proof}
+      Suppose
+      $\mathcal{D} \deduc \Gamma \proves [\sigma]t \hastype T$.
+      We want to show that $\Gamma, \Gamma^\prime \phts t \hastype T$, where
+      $\sigma \hastype \Gamma^\prime$ is a substitution for polymorphic
+      variables.
+
+      We proceed by induction on $\mathcal{D}$.
+
+      \begin{description}
+        \item[Case]
+          $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{
+              \Gamma \proves [\sigma] \mathtt{let}\; x = t_1 \;\mathtt{in}\; t_2
+              \hastype T
+            }{
+              \deduce[\mathcal{D}_1]{\Gamma \proves [\sigma]t_1 \hastype T_1}{}
+              &
+              \deduce[\mathcal{D}_2]{\Gamma \proves [t_1/x,\;\sigma]t_2 \hastype T}{}
+            }
+          \end{equation*}
+
+          By the induction hypothesis on $\mathcal{D}_1$, deduce
+          $\mathcal{F}_1 \deduc \Gamma, \Gamma^\prime \phts T_1$.
+
+          We quantify over all free type variables in $T_1$ (by applying rule
+          $\mathqd{tpsc-base}$ followed by repeatedly applying rule
+          $\mathqd{tpsc-all}$) to deduce
+          $\mathcal{F}_1^\prime \deduc \Gamma, \Gamma^\prime \phts S$
+
+          By the induction hypothesis on $\mathcal{D}_2$, deduce
+          $\mathcal{F}_2 \deduc
+          \Gamma, \Gamma^\prime, x \hastypesc S \phts t_2 \hastype T$
+
+          Then we construct the derivation
+          %
+          \begin{equation*}
+            \infer{
+              \Gamma, \Gamma^\prime
+              \phts \mathtt{let}\; x = t_1 \;\mathtt{in}\; t_2 \hastype T
+            }{
+              \deduce[\mathcal{F}_1]{\Gamma, \Gamma^\prime \phts t_1 \hastypesc S}{}
+              &
+              \deduce[\mathcal{F}_2]{
+                \Gamma, \Gamma^\prime, x \hastypesc S \phts t_2 \hastype T
+              }{}
+            }
+          \end{equation*}
+          %
+          as required.
+      \end{description}
+    \end{proof}
+
+  \item
+    We consider the harder direction of the equivalence.
+
+    \begin{proof}
+      Suppose $\mathcal{D} \deduc \Gamma \phts t \hastype T$.
+      We want to show that $\Gamma \proves t \hastype T$.
+      We proceed by induction on $\mathcal{D}$.
+
+      \begin{description}
+        \item[Case]
+          $\mathcal{D}$ is of the form
+          %
+          \begin{equation*}
+            \infer{
+              \Gamma \phts \mathtt{let}\; x = t_1 \;\mathtt{in}\; t_2
+            }{
+              \deduce[\mathcal{D}_1]{\Gamma \phts t_1 \hastypesc S}{}
+              &
+              \deduce[\mathcal{D}_2]{
+                \Gamma, x \hastypesc S \phts t_2 \hastype T
+              }{}
+            }
+          \end{equation*}
+
+          We would like to proceed by using the substitution lemma to deduce
+          $\Gamma \phts [t_1/x]t_2 \hastype T$ followed by the induction
+          hypothesis to complete the proof.
+          %
+          However, this use of the induction hypothesis would not be justified,
+          since we can't say anything about the size of the derivation that
+          results from the use of the substitution lemma.
+
+          It isn't clear how exactly to proceed in this case.
+      \end{description}
+    \end{proof}
+\end{enumerate}
+
+\end{document}
