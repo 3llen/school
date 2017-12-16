@@ -1,0 +1,341 @@
+\documentclass[11pt]{article}
+
+\author{Jacob Thomas Errington}
+\title{A codata approach to functional reactive programming}
+\date{15 December 2017}
+
+\usepackage[geometry]{jakemath}
+\usepackage[backend=biber]{biblatex}
+
+\addbibresource{bib.bib}
+
+\newcommand{\fun}{\mathtt{fun}}
+\renewcommand{\circle}{\bigcirc}
+\newcommand{\always}{\square}
+\newcommand{\eventually}{\lozenge}
+\renewcommand{\next}{\mathtt{.next}}
+\renewcommand{\synth}{\searrow}
+\newcommand{\IO}{\mathtt{IO}}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Functional reactive programming\cite{frp-hudak} is a powerful paradigm for
+programming reactive systems.
+Such systems receive their inputs and produce their outputs gradually as they
+run. Examples of reactive systems include graphical user interfaces,
+operating systems, web servers, and robots.
+Since the duration of execution is indefinite -- in principle, a server could
+receive infinitely many requests -- the inputs to the system can be modelled as
+an infinite stream.
+Consequently, reactive programs are stream processors.
+
+Copattern matching\cite{copatterns} provides new insight into the manipulation
+of codata, such as infinite streams.
+Rather than define a codata type using a number of constructors, we instead
+prefer to define it using a number of \emph{eliminators} or observations.
+Whereas data is \emph{analyzed} by pattern matching, codata is
+\emph{synthesized} by copattern matching.
+%
+It therefore seems natural to want use copattern matching for reactive
+programs, which process streams.
+
+There are some practical considerations for a functional reactive programming
+language: many existing FRP frameworks are plagued by \emph{space leaks}, in
+which a program can accidentally use large amounts of memory.
+Much effort has gone into the design of leak-proof
+systems\cite{ltl,neelk1,neelk2,neelk3}, which by their typing rules prevent
+space leaks.
+
+In this report, we present a surface-level functional reactive programming
+language borrowing ideas from linear temporal logic\cite{pnueli}.
+We will argue that our system is leak-proof and causal, due to its operational
+semantics.
+
+\section{Background}
+\label{sec:background}
+
+The system of Cave et al.\cite{ltl} is leak-proof, but this comes at a cost.
+Their system distinguishes two contexts of variables: one for the current
+time-step and one for the next time-step. We call these contexts the
+``today-context'' and the ``tomorrow-context'' and generally denote them by
+$\Delta$ and $\Gamma$, respectively.
+Terms whose types involve the $\circle$ modality manipulate the
+tomorrow-context in an interesting way.
+%
+\begin{equation*}
+  \infer{
+    \Delta; \Gamma \proves \bullet M \hastype \circle A
+  }{
+    \cdot; \Delta \proves M \hastype A
+  }
+\end{equation*}
+%
+It is this introduction form for $\circle$ which essentially prevents space
+leaks. By forgetting the today-context $\Gamma$, a computation that takes place
+in the next time-step cannot use a variable from the current time-step.
+
+This approach has two downsides.
+%
+\begin{enumerate}
+  \item
+    In order to use a value of type $\circle A$ as a value of type $A$ in the
+    next time-step, the programmer must use the elimination form for $\circle$
+    before using the introduction form.
+
+    First, observe that the elimination form for $\circle$ extends the
+    tomorrow-context.
+    %
+    \begin{equation*}
+      \infer{
+        \Delta;\Gamma \proves \letin{\bullet x = M}{N} \hastype C
+      }{
+        \Delta;\Gamma \proves M \hastype \circle A
+        &
+        \Delta, x\hastype A; \Gamma \proves N \hastype C
+      }
+    \end{equation*}
+
+    Typically, one must apply this elimination to all $\circle$ bindings in
+    scope in $\Gamma$ in order to extend $\Delta$ as much as possible.
+    Only once all $\circle$ bindings are eliminated should the programmer use
+    the introduction form $\bullet$ in order to promote the tomorrow-context
+    $\Delta$ into a today-context and continue writing the program.
+
+    If the programmer were to use the introduction form first, then the
+    bindings in $\Gamma$ to any future computations would be lost!
+
+  \item
+    Since all bindings in the today-context are eliminated when we move under a
+    $\bullet$, the programmer must explicitly reconstruct certain values in the
+    next time-step.
+
+    For example, if we have in the current time-step a natural number, then it
+    seems reasonable that we should have this same number in the next time
+    step. Finite data that does not involve the $\circle$ modality should be
+    generally available whenever we like.
+
+    What is more is that the reconstruction of the data is operationally
+    expensive. Reconstructing a natural number, for instance, takes time
+    proportional to the size of the number!
+\end{enumerate}
+
+The system of Cave et al. has several desirable properties, however.
+Chiefly, it is normalizing and it distinguishes least and greatest fixed
+points.
+It follows from these properties that the system can be used to express
+\emph{liveness guarantees}, which ensure that ``something good eventually
+happens.'' What this means specifically in terms of LTL is that the
+$\eventually$ (eventually) modality can be encoded in the system.
+
+In contrast, the work of Neel Krishnaswami\cite{neelk1} does not distinguish
+between least and greatest fixed points. Consequently, inductive types collapse
+into coinductive types, which makes it possible to write undesirable
+inhabitants of certain recursive types.
+
+For example, consider the type $\mu X.\; A + \circle X$.
+Treated as an inductive type, its values are \emph{finite}, so we are
+guaranteed to eventually encounter a value of type $A$.
+Treated as a coinductive type, its values could be \emph{infinite}, so we might
+have to wait forever.
+Clearly, this coinductive form is unsuitable for encoding the $\eventually$
+modality of LTL.
+
+Krishnaswami's system on the other hand has a notion of ``stable expressions''
+which completely sidesteps the issue of having to reconstruct certain values in
+the next time-step. Furthermore, he has a concrete implementation of his system
+with runnable demo programs, whereas it is not so clear how exactly a user of
+Cave et al.'s system would write a complete, runnable program.
+
+Our system will try to combine the best elements from both these treatments of
+LTL, as well earlier work on temporal logic by Rowan Davies in the context of
+staged metaprogramming.
+We will make the inspiration for our ideas more precise in the following
+section.
+
+\section{Syntax}
+\label{sec:syntax}
+
+The key syntactic difference of our system is the use of
+\emph{copatterns}\cite{copatterns}, which provide an elegant way of
+manipulating codata.
+
+\section{Typing}
+\label{sec:types}
+
+The key semantic difference of our system is to consider the $\circle$ modality
+as a codata type constructor.
+
+What is an expression of type $\circle A$?
+It is a \emph{computation} scheduled to run in the next time-step that produces
+a value of type $A$.
+Operationally, this means that expressions of this type cannot be evaluated
+until the appropriate time has been reached.
+This is a form of lazy evaluation, but in contrast to traditional lazy
+evaluation in which evaluation is triggered by a demand that arises internally,
+(such as a case analysis,) the demand for evaluation of $\circle A$ arises
+\emph{externally} by the advancing of time.
+It is due to this laziness inherent to the type $\circle A$ that we wish to
+consider such types to be codata types.
+
+Hence we define $\circle A$ by its eliminator, the $\next$ observation.
+However, we cannot simply create a rule such as
+%
+\begin{equation*}
+  \infer{
+    \Gamma \proves M\next \hastype A
+  }{
+    \Gamma \proves M \hastype \circle A
+  }
+\end{equation*}
+%
+Such a rule would allow us to predict the future!
+%
+Instead, we gain insight from the work of Rowan Davies\cite{davies-ltl}, and
+index our typing judgment by an explicit time-step $n$.
+This gives an elimination rule for $\circle$ that is more temporally sensible.
+%
+\begin{equation*}
+  \infer{
+    \Gamma \proves^{n+1} M\next \hastype A
+  }{
+    \Gamma \proves^n M \hastype \circle A
+  }
+\end{equation*}
+%
+Informally, if we know today that tomorrow there is a party, then once we go to
+sleep and wake up the next day, the party is happening today!
+
+In the framework of copatterns, codata values are synthesized using copattern
+matching, in which the programmer explains what to do for each possible
+observation.
+In the case of $\circle$ there is only one observation, so a copattern matching
+program $e$ that witnesses the type $\circle A$ might be
+%
+\begin{equation*}
+  e \equiv \fun\;\next\goesto a
+\end{equation*}
+%
+for some expression $a \hastype A$.
+The key insight is that while $e$ lives at time $n$, its body under the $\next$
+observation lives at time $n+1$.
+This is made precise by the copattern typing rule for $\next$, which also
+involves time indices.
+%
+\begin{equation*}
+  \infer{
+    \Gamma > \circle A \proves^n \next\; q \synth_k T
+  }{
+    \Gamma > A \proves^{n+1} q \synth_k T
+  }
+\end{equation*}
+%
+These indices essentially count the number of $\next$ observations that occur
+in the copattern.
+When the copattern ends, the index $n$ is returned along with the result type
+$T$. This information is used to typecheck the body of the function under that
+copattern.
+%
+\begin{equation*}
+  \infer{\Gamma > S \proves^n \cdot \synth_n S}{}
+  \quad
+  \infer{
+    \Gamma \proves^n \fun\; q_i \goesto t_i
+  }{
+    \Gamma > S \proves^n q_i \synth_k T
+    &
+    \Gamma \proves^k t_i \hastype T
+  }
+\end{equation*}
+
+Common to both Cave et al.'s system and Krishnaswami's system is that bindings
+in the past are not generally available in the future.
+Our system obeys this same principle, in order to avoid space leaks.
+To that end, variable bindings in $\Gamma$ are also indexed by the time at
+which they are introduced.
+%
+\begin{equation*}
+  \infer{
+    \Gamma, \Gamma^\prime > S^\prime \to S \proves^n p q \synth_k T
+  }{
+    \Gamma^\prime \proves^n p \hastype S^\prime
+    &
+    \Gamma > S \proves^n q \synth_k T
+  }
+  \quad
+  \infer{
+    x \hastype A^n \proves^n x \hastype A
+  }{}
+\end{equation*}
+%
+On the left is the rule that shows how patterns are embedded inside copatterns.
+The pattern typing judgment is also indexed by the time $n$, so that when we
+reach the base case of pattern typing, namely a variable, we can annotate the
+variable with its introduction time.
+%
+This is essential as it allows us to pull out this time when we try to use the
+variable $x$ as an expression.
+%
+\begin{equation*}
+  \infer{
+    \Gamma \proves^n x \hastype A
+  }{
+    \Gamma(x) = A^n
+  }
+\end{equation*}
+
+% \begin{figure}[ht]
+%   Standard typing rules.
+%   %
+%   \begin{align*}
+%   \end{align*}
+%   %
+%   \begin{align*}
+%     &\infer{
+%       \Gamma \proves^n \fun\; q_i \goesto t_i \hastype S
+%     }{
+%       \Gamma
+%     }
+%   \end{align*}
+%   \caption{
+%     The typing rules for our system.
+%   }
+%   \label{fig:types}
+% \end{figure}
+
+\section{Operational semantics}
+\label{sec:operational}
+
+The operational semantics of our system is surprisingly simple, and is informed
+by thinking about what a program written by a user of our system might want to
+write.
+There must be some notion of \emph{event loop} that lives in the runtime
+system, external to our language.
+A user of our language simply writes a stream of actions to be executed at
+each time step by the runtime system.
+
+Hence, a final runnable program would be
+$\Gamma \proves^0 \mathtt{main} \hastype \always (\IO\; ())$.
+This program computes a stream and returns it to the runtime system.
+The runtime system then pumps this stream once at every time-step, and
+feeds a new $\next$ observation to the user's program to witness the passage
+of time.
+
+The upshot of this execution model is that the standard lazy operational
+semantics of copattern matching can be used to execute reactive programs!
+This corroborates our earlier remark that reactive programming is simply lazy
+programming in which the evaluation need is \emph{external}.
+Indeed, the evaluation is triggered at each time step by the runtime system by
+executing the head of the stream, taking its tail, and supplying a $\next$
+observation.
+
+\section{Type safety}
+
+
+\pagebreak
+\printbibliography%
+
+\end{document}
