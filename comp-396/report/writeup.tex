@@ -1,10 +1,10 @@
-\documentclass[11pt]{article}
+\documentclass[acmsmall, natbib=false]{acmart}
 
 \author{Jacob Thomas Errington}
 \title{A codata approach to functional reactive programming}
 \date{15 December 2017}
 
-\usepackage[geometry]{jakemath}
+\usepackage{jakemath}
 \usepackage[backend=biber]{biblatex}
 
 \addbibresource{bib.bib}
@@ -16,6 +16,12 @@
 \renewcommand{\next}{\mathtt{.next}}
 \renewcommand{\synth}{\searrow}
 \newcommand{\IO}{\mathtt{IO}}
+\newcommand{\stable}{\mathtt{stable}}
+\newcommand{\ctor}{\mathtt{c}}
+\newcommand{\obs}{\mathtt{.d}}
+% \newcommand{\letin}[1]{\mathtt{let}\;#1\;\mathtt{in}}
+\newcommand{\eq}{\quad::=}
+\newcommand{\syn}[1]{\mathqd{#1}\;}
 
 \begin{document}
 
@@ -29,8 +35,8 @@ Such systems receive their inputs and produce their outputs gradually as they
 run. Examples of reactive systems include graphical user interfaces,
 operating systems, web servers, and robots.
 Since the duration of execution is indefinite -- in principle, a server could
-receive infinitely many requests -- the inputs to the system can be modelled as
-an infinite stream.
+receive infinitely many requests -- both the inputs to the system and the
+system's outputs can be modelled as infinite streams.
 Consequently, reactive programs are stream processors.
 
 Copattern matching\cite{copatterns} provides new insight into the manipulation
@@ -52,11 +58,35 @@ space leaks.
 
 In this report, we present a surface-level functional reactive programming
 language borrowing ideas from linear temporal logic\cite{pnueli}.
-We will argue that our system is leak-proof and causal, due to its operational
-semantics.
+%
+Our main contribution is a new way of thinking about temporal types, namely as
+codata types, and the exposition of the relevant rules.
+Our secondary contribution is a partial implementation of our
+language.
+Missing still is a backend implementation to actually compile our typechecked
+programs into a runnable language.
+An interesting choice of target language could be Lua: several games use this
+language for scripting. Such scripts in games are typically coded in the
+traditional callback-style of event-driven programming. A more functional
+reactive approach could significantly simplify these types of programs.
 
 \section{Background}
 \label{sec:background}
+
+There are many treatments of linear temporal logic, but we restrict ourselves
+to the constructive fragment obtained by the $\circle$ modality and least and
+greatest fixed-points.
+Logically, a proposition $\circle A$ describes a proposition that is true in
+the \emph{next time step}.
+This modality gives rise to a discrete notion of time, which is in contrast to
+continuous-time formulations (including the original
+formulation\cite{frp-hudak}) of FRP.
+Computationally, an expression of type $\circle \mathqd{Nat}$ describes a
+computation to be run in the next time step and that produces a value of type
+\textqd{Nat}.
+
+\emph{Space leaks} arise in FRP systems that allow arbitrary access to past
+information.
 
 The system of Cave et al.\cite{ltl} is leak-proof, but this comes at a cost.
 Their system distinguishes two contexts of variables: one for the current
@@ -76,7 +106,8 @@ tomorrow-context in an interesting way.
 %
 It is this introduction form for $\circle$ which essentially prevents space
 leaks. By forgetting the today-context $\Gamma$, a computation that takes place
-in the next time-step cannot use a variable from the current time-step.
+in the next time-step cannot use any variables that were available in the
+previous time-step.
 
 This approach has two downsides.
 %
@@ -86,8 +117,8 @@ This approach has two downsides.
     next time-step, the programmer must use the elimination form for $\circle$
     before using the introduction form.
 
-    First, observe that the elimination form for $\circle$ extends the
-    tomorrow-context.
+    To see this, observe that the elimination form for $\circle$ extends
+    the tomorrow-context.
     %
     \begin{equation*}
       \infer{
@@ -130,31 +161,44 @@ It follows from these properties that the system can be used to express
 \emph{liveness guarantees}, which ensure that ``something good eventually
 happens.'' What this means specifically in terms of LTL is that the
 $\eventually$ (eventually) modality can be encoded in the system.
+Furthermore, by interleaving least and greatest fixed-points, the system can
+express \emph{fairness guarantees}, which ensure that each member of a family
+of streams is served infinitely often.
 
 In contrast, the work of Neel Krishnaswami\cite{neelk1} does not distinguish
 between least and greatest fixed points. Consequently, inductive types collapse
 into coinductive types, which makes it possible to write undesirable
 inhabitants of certain recursive types.
-
+%
 For example, consider the type $\mu X.\; A + \circle X$.
 Treated as an inductive type, its values are \emph{finite}, so we are
 guaranteed to eventually encounter a value of type $A$.
+Hence this type can be used to encode the $\eventually$ modality of LTL.
 Treated as a coinductive type, its values could be \emph{infinite}, so we might
 have to wait forever.
-Clearly, this coinductive form is unsuitable for encoding the $\eventually$
-modality of LTL.
+Clearly, this coinductive form is unsuitable for encoding $\eventually$.
 
 Krishnaswami's system on the other hand has a notion of ``stable expressions''
 which completely sidesteps the issue of having to reconstruct certain values in
-the next time-step. Furthermore, he has a concrete implementation of his system
-with runnable demo programs, whereas it is not so clear how exactly a user of
-Cave et al.'s system would write a complete, runnable program.
+the next time-step.
+In his system, a type that does not involve $\circle$ or any fixed-points is
+considered stable, and is available at every time-step.
+Furthermore, this notion of stability is internalized in his system: an
+expression $N \hastype A$ for a stable type $A$ can be \emph{promoted} to a
+type $\always A$.
+This makes it possible to write functions of a type such as
+$\always (A \to B) \to \mathqd{S}\; A \to \mathqd{S}\; B$,
+where $\mathqd{S}$ is the type constructor for streams and $\always$ denotes
+the internalized notion of stability.
+Such a function would apply \emph{the same} given function to each element of a
+stream, yielding another stream.
+The system of Cave et al. cannot implement such a function, and instead one
+would write a function taking as input a \emph{stream} of functions as well as
+a stream of inputs.
 
-Our system will try to combine the best elements from both these treatments of
-LTL, as well earlier work on temporal logic by Rowan Davies in the context of
-staged metaprogramming.
-We will make the inspiration for our ideas more precise in the following
-section.
+Our system combines elements from both these treatments of FRP:
+we have an internalized notion of stability as well as a distinction between
+fixed-points.
 
 \section{Syntax}
 \label{sec:syntax}
@@ -163,32 +207,270 @@ The key syntactic difference of our system is the use of
 \emph{copatterns}\cite{copatterns}, which provide an elegant way of
 manipulating codata.
 
+\begin{figure}[ht]
+  \begin{align*}
+    & \syn{Types} T
+      \eq X \galt \mathqd{Unit} \galt \circle T
+      \galt T_1 \times T_2 \galt T_1 \to T_2
+      \galt \mu X.\; D \galt \nu X.\; R
+      \\
+    & \syn{Variants} D
+      \eq \langle \ctor_1 \hastype T_1, \ldots, \ctor_n \hastype T_n \rangle
+      \\
+    & \syn{Records} R
+      \eq \langle \obs_1 \hastype T_1, \ldots, \obs_n \hastype T_n \rangle
+      \\
+    & \syn{Terms} t
+      \eq () \galt (t_1, t_2) \galt c_i\; t \galt t\obs \galt t\next
+      \galt t_1\; t_2 \galt \fun\; \overrightarrow{q_i \goesto t_i}
+      \galt \letin{\stable\; x = t_1}{t_2} \galt \stable\; t
+      \\
+    & \syn{Copatterns} q
+      \eq \cdot \galt p\; q \galt \obs\; q
+      \\
+    & \syn{Patterns} p
+      \eq x \galt () \galt (p_1, p_2) \galt \ctor_i\; p
+      \\
+    & \syn{Contexts} \Gamma
+      \eq \cdot \galt \Gamma, x \hastype A^n \galt \Gamma, x \hastype A
+  \end{align*}
+  %
+  \caption{%
+    The syntax of our system.%
+  }
+  \label{fig:syntax}
+\end{figure}
+
 \section{Typing}
 \label{sec:types}
+
+\begin{figure}[ht]
+  \begin{equation*}
+    \boxed{\Gamma \proves^n t \hastype T}
+  \end{equation*}
+
+  \begin{equation*}
+    \infer{
+      \Gamma \proves^n () \hastype \mathqd{Unit}
+    }{}
+    \quad
+    \infer{
+      \Gamma \proves^n x \hastype T
+    }{
+      \Gamma(x) = T^n
+    }
+    \quad
+    \infer{
+      \Gamma \proves^n x \hastype T
+    }{
+      \Gamma(x) = T
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \infer{
+      \Gamma \proves^{n+1} t\next \hastype T
+    }{
+      \Gamma \proves^n t \hastype \circle T
+    }
+    \quad
+    \infer{
+      \Gamma \proves^n t\mathtt{.d}_i \hastype [\nu X.\; R/X]T_i
+    }{
+      \Gamma \proves^n t \hastype \nu X.\; R
+    }
+    \quad
+    \text{%
+      where
+      $R =
+      \langle
+      \obs_1 \hastype T_1, \ldots, \obs_n \hastype T_n
+      \rangle$
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \infer{
+      \Gamma \proves^n (t_1, t_2) \hastype T_1 \times T_2
+    }{
+      \Gamma \proves^n t_1 \hastype T_1
+      &
+      \Gamma \proves^n t_2 \hastype T_2
+    }
+    \quad
+    \infer{
+      \Gamma \proves^n \ctor_i\; t \hastype \mu X.\; D
+    }{
+      \Gamma \proves^n t \hastype [\mu X.\; D/X]T_i
+    }
+    \quad
+    \text{%
+      where $D =
+      \langle
+      \ctor_1 \hastype T_1, \ldots, \ctor_n \hastype T_n
+      \rangle$
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \infer{
+      \Gamma \proves^n \letin{\stable\; x = t_1}{t_2} \hastype T
+    }{
+      \Gamma \proves^n t_1 \hastype \always T^\prime
+      &
+      \Gamma, x \hastype T^\prime \proves^n t_2 \hastype T
+    }
+    \quad
+    \infer{
+      \Gamma \proves^m \stable\; t \hastype \always T
+    }{
+      \Gamma \proves^n t \hastype T
+    }
+    \quad
+    \text{where $n$ is free}
+  \end{equation*}
+
+  \begin{equation*}
+    \infer{
+      \Gamma \proves^n \mathtt{rec}\; t_1.\; t_2 \hastype T
+    }{
+      \Gamma, t_1 \hastype T \proves^n t_2 \hastype T
+    }
+    \quad
+    \infer{
+      \Gamma \proves^n \fun\; \overrightarrow{q_i \goesto t_i} \hastype T
+    }{
+      \forall i.
+      &
+      \Gamma^\prime > T \proves^n q_i \synth_k T^\prime
+      &
+      \Gamma, \Gamma^\prime \proves^k t_i \hastype T^\prime
+    }
+    \quad
+    \infer{
+      \Gamma \proves^n t\; t^\prime \hastype T
+    }{
+      \Gamma \proves^n t \hastype T^\prime \to T
+      &
+      \Gamma \proves^n t^\prime \hastype T^\prime
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \boxed{\Gamma > T \proves^n q \synth_k T^\prime}
+  \end{equation*}
+
+  \begin{equation*}
+    \infer{
+      \cdot > T \proves^n \cdot \synth_n T
+    }{}
+    \quad
+    \infer{
+      \Gamma, \Gamma^\prime > T_1 \to T_2 \proves^n p\; q \synth_k T^\prime
+    }{
+      \Gamma^\prime \proves^n p \hastype T_1
+      &
+      \Gamma > T_2 \proves^n q \synth_k T^\prime
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \infer{
+      \Gamma > \circle T \proves^n \next\; q \synth_k T^\prime
+    }{
+      \Gamma > T \proves^{n+1} q \synth_k T^\prime
+    }
+    \quad
+    \infer{
+      \Gamma > \nu X.\; R \proves^n \obs_i\; q \synth_k T^\prime
+    }{
+      \Gamma > [\nu X.\; R/X]T_i \proves^n q \synth_k T^\prime
+    }
+    \quad
+    \text{%
+      where
+      $R =
+      \langle
+      \obs_1 \hastype T_1, \ldots, \obs_n \hastype T_n
+      \rangle$
+    }
+  \end{equation*}
+
+  \begin{equation*}
+    \boxed{\Gamma \proves^n p \hastype T}
+  \end{equation*}
+
+  \begin{equation*}
+    \infer{
+      \cdot \proves () \hastype \mathqd{Unit}
+    }{}
+    \quad
+    \infer{
+      x \hastype T^n \proves^n x \hastype T
+    }{}
+  \end{equation*}
+
+  \begin{equation*}
+    \infer{
+      \Gamma_1, \Gamma_2 \proves^n (p_1, p_2) \hastype T_1 \times T_2
+    }{
+      \Gamma_1 \proves^n p_1 \hastype T_1
+      &
+      \Gamma_2 \proves^n p_2 \hastype T_2
+    }
+    \quad
+    \infer{
+      \Gamma \proves^n \ctor_i\; p \hastype \mu X.\; D
+    }{
+      \Gamma \proves^n p \hastype [\mu X.\; D/X]T_i
+    }
+    \quad
+    \text{%
+      where $D =
+      \langle
+      \ctor_1 \hastype T_1, \ldots, \ctor_n \hastype T_n
+      \rangle$
+    }
+  \end{equation*}
+
+  \caption{%
+    The typing rules of our system.
+    Most rules given here are simply the standard rules augmented with time
+    indices.
+    The rules that are key to our system involve the $\circle$ modality and the
+    $\always$ modality.
+    These rules affect the time indices in interesting ways.
+  }
+  \label{fig:types}
+\end{figure}
 
 The key semantic difference of our system is to consider the $\circle$ modality
 as a codata type constructor.
 
-What is an expression of type $\circle A$?
+What is an expression of type $\circle T$?
 It is a \emph{computation} scheduled to run in the next time-step that produces
-a value of type $A$.
+a value of type $T$.
 Operationally, this means that expressions of this type cannot be evaluated
 until the appropriate time has been reached.
-This is a form of lazy evaluation, but in contrast to traditional lazy
-evaluation in which evaluation is triggered by a demand that arises internally,
-(such as a case analysis,) the demand for evaluation of $\circle A$ arises
-\emph{externally} by the advancing of time.
-It is due to this laziness inherent to the type $\circle A$ that we wish to
-consider such types to be codata types.
+This is a form of lazy evaluation.
+However, the evaluation demand is \emph{external}: it is the runtime
+system that expresses a demand to evaluate an expression.
+In contrast, a traditional lazy expression is only evaluated when it is needed,
+i.e. when it is analyzed by pattern matching. In other words, the evaluation
+demand is \emph{internal} in traditional lazy evaluation: it is the
+\emph{program} that eventually requires the evaluation.
+It is due to this form of laziness associated with the type $\circle T$ that we
+wish to consider such types to be codata types.
 
-Hence we define $\circle A$ by its eliminator, the $\next$ observation.
+Hence we define $\circle T$ by its eliminator, which we call the $\next$
+observation.
 However, we cannot simply create a rule such as
 %
 \begin{equation*}
   \infer{
-    \Gamma \proves M\next \hastype A
+    \Gamma \proves M\next \hastype T
   }{
-    \Gamma \proves M \hastype \circle A
+    \Gamma \proves M \hastype \circle T
   }
 \end{equation*}
 %
@@ -200,9 +482,9 @@ This gives an elimination rule for $\circle$ that is more temporally sensible.
 %
 \begin{equation*}
   \infer{
-    \Gamma \proves^{n+1} M\next \hastype A
+    \Gamma \proves^{n+1} M\next \hastype T
   }{
-    \Gamma \proves^n M \hastype \circle A
+    \Gamma \proves^n M \hastype \circle T
   }
 \end{equation*}
 %
@@ -213,13 +495,13 @@ In the framework of copatterns, codata values are synthesized using copattern
 matching, in which the programmer explains what to do for each possible
 observation.
 In the case of $\circle$ there is only one observation, so a copattern matching
-program $e$ that witnesses the type $\circle A$ might be
+program $e$ that witnesses the type $\circle T$ might be
 %
 \begin{equation*}
   e \equiv \fun\;\next\goesto a
 \end{equation*}
 %
-for some expression $a \hastype A$.
+for some expression $a \hastype T$.
 The key insight is that while $e$ lives at time $n$, its body under the $\next$
 observation lives at time $n+1$.
 This is made precise by the copattern typing rule for $\next$, which also
@@ -227,9 +509,9 @@ involves time indices.
 %
 \begin{equation*}
   \infer{
-    \Gamma > \circle A \proves^n \next\; q \synth_k T
+    \Gamma > \circle T \proves^n \next\; q \synth_k T^\prime
   }{
-    \Gamma > A \proves^{n+1} q \synth_k T
+    \Gamma > T \proves^{n+1} q \synth_k T^\prime
   }
 \end{equation*}
 %
@@ -240,100 +522,253 @@ $T$. This information is used to typecheck the body of the function under that
 copattern.
 %
 \begin{equation*}
-  \infer{\Gamma > S \proves^n \cdot \synth_n S}{}
+  \infer{\Gamma > T \proves^n \cdot \synth_n T}{}
   \quad
   \infer{
     \Gamma \proves^n \fun\; q_i \goesto t_i
   }{
-    \Gamma > S \proves^n q_i \synth_k T
+    \Gamma > T \proves^n q_i \synth_k T^\prime
     &
-    \Gamma \proves^k t_i \hastype T
+    \Gamma \proves^k t_i \hastype T^\prime
   }
 \end{equation*}
 
 Common to both Cave et al.'s system and Krishnaswami's system is that bindings
-in the past are not generally available in the future.
+in the past are not (generally) available in the future.
 Our system obeys this same principle, in order to avoid space leaks.
 To that end, variable bindings in $\Gamma$ are also indexed by the time at
 which they are introduced.
 %
 \begin{equation*}
   \infer{
-    \Gamma, \Gamma^\prime > S^\prime \to S \proves^n p q \synth_k T
+    \Gamma, \Gamma^\prime > T_1 \to T_2 \proves^n p\; q \synth_k T
   }{
-    \Gamma^\prime \proves^n p \hastype S^\prime
+    \Gamma^\prime \proves^n p \hastype T_1
     &
-    \Gamma > S \proves^n q \synth_k T
+    \Gamma > T_2 \proves^n q \synth_k T
   }
   \quad
   \infer{
-    x \hastype A^n \proves^n x \hastype A
+    x \hastype T^n \proves^n x \hastype T
   }{}
 \end{equation*}
 %
 On the left is the rule that shows how patterns are embedded inside copatterns.
 The pattern typing judgment is also indexed by the time $n$, so that when we
-reach the base case of pattern typing, namely a variable, we can annotate the
-variable with its introduction time.
+reach the base case of pattern typing, namely a variable as on the right, we
+can annotate the variable with its introduction time.
 %
 This is essential as it allows us to pull out this time when we try to use the
 variable $x$ as an expression.
 %
 \begin{equation*}
   \infer{
-    \Gamma \proves^n x \hastype A
+    \Gamma \proves^n x \hastype T
   }{
-    \Gamma(x) = A^n
+    \Gamma(x) = T^n
   }
 \end{equation*}
 
-% \begin{figure}[ht]
-%   Standard typing rules.
-%   %
-%   \begin{align*}
-%   \end{align*}
-%   %
-%   \begin{align*}
-%     &\infer{
-%       \Gamma \proves^n \fun\; q_i \goesto t_i \hastype S
-%     }{
-%       \Gamma
-%     }
-%   \end{align*}
-%   \caption{
-%     The typing rules for our system.
-%   }
-%   \label{fig:types}
-% \end{figure}
+An important feature of our system is a form of polymorphism for time.
+%
+For instance, consider the corecursive function $f$ that generates a stream of
+zeroes.
+%
+\begin{align*}
+  f \equiv \; & \fun\; \mathtt{.head}\; = 0 \\
+  &\hphantom{\fun\;} \mathtt{.tail}\; \next = f
+\end{align*}
+%
+The corecursive call to $f$ will require $f$ to be available at time $n + 1$,
+since it appears under a $\next$ observation.
+%
+In general, we allow (co)recursive calls at any time, using the following rule
+for general (co)recursion.
+%
+\begin{equation*}
+  \infer{
+    \Gamma \proves^n \mathtt{rec}\; f. t \hastype T
+  }{
+    \Gamma, f \hastype T \proves^n t \hastype T
+  }
+\end{equation*}
+%
+Notice that $f \hastype T$ does not sport a time index.
+This indicates that it is available at any time, from which we get the
+following second variable rule.
+%
+\begin{equation*}
+  \infer{
+    \Gamma \proves^n x \hastype T
+  }{
+    \Gamma(x) = T
+  }
+\end{equation*}
+
+Time polymorphism arises in a second place, when writing expressions that
+intuitively have nothing to do with time.
+For instance, checking whether a \textqd{Nat} is zero is independent of the
+time at which we perform this check!
+So it should be possible to instantiate the function that implements this check
+at any time.
+In general, when checking a function, we introduce a fresh \emph{time variable}
+$n$ for it.
+This $n$ might get unified with other time variables: the function might close
+over a binding that has a specific time $k$ attached to it.
+Otherwise, if the function refers only to its parameters and to bindings that
+can be instantiated at any time, then $n$ will be parametric.
+In this case, we say that the function is \emph{polytimed}.
+
+Any polytimed expression can be \emph{stabilized}, which internalizes the
+notion of being polytimed.
+%
+\begin{equation*}
+  \infer{
+    \Gamma \proves^m \stable\; t \hastype \always T
+  }{
+    \Gamma \proves^n t \hastype T
+  }
+  \quad
+  \quad
+  \infer{
+    \Gamma \proves^n \letin{\mathtt{stable}\;x = t}{s} \hastype T^\prime
+  }{
+    \Gamma \proves^n t \hastype \always T
+    &
+    \Gamma, x \hastype T \proves^n s \hastype T^\prime
+  }
+\end{equation*}
+%
+where in the left rule, $n$ is parametric (i.e. does not appear) in $\Gamma$.
+As in\cite{neelk1}, we use the $\always$ (always) modality to express the
+internalized notion of stability.
+
+Using this, it becomes possible to write a \texttt{map} function that applies
+\emph{the same} function to each element of a stream.
+%
+\begin{align*}
+  &\mathtt{map} \hastype \always (A \to B) \to \mathqd{S}\; A \to \mathqd{S}\; B \\
+  &\mathtt{map}\; b\; s\; \mathtt{.head} =
+    \letin{\mathtt{stable}\; f = b}{f\; s\mathtt{.head}} \\
+  &\mathtt{map}\; b\; s\; \mathtt{.tail}\; \next =
+    \mathtt{map}\; b\; s\mathtt{.tail}\next
+\end{align*}
 
 \section{Operational semantics}
 \label{sec:operational}
 
-The operational semantics of our system is surprisingly simple, and is informed
-by thinking about what a program written by a user of our system might want to
-write.
-There must be some notion of \emph{event loop} that lives in the runtime
-system, external to our language.
-A user of our language simply writes a stream of actions to be executed at
-each time step by the runtime system.
+A final, runnable user program is a function
+$\Gamma \proves^0
+\mathtt{main} \hastype
+\mathqd{S}\; \mathqd{Input} \to \mathqd{S}\; \mathqd{Output}$
+where $\mathqd{S}$ is the stream codata type constructor and $\Gamma$ consists
+of the other bindings defined in the file.
 
-Hence, a final runnable program would be
-$\Gamma \proves^0 \mathtt{main} \hastype \always (\IO\; ())$.
-This program computes a stream and returns it to the runtime system.
-The runtime system then pumps this stream once at every time-step, and
-feeds a new $\next$ observation to the user's program to witness the passage
-of time.
+The runtime system defines the types $\mathqd{Input}$ and $\mathqd{Output}$
+opaquely. The user cannot construct or analyze values of either type.
+Our language instead provides primitive functions that consume $\mathqd{Input}$
+values and generate $\mathqd{Output}$ values.
+Consequently, changes to the runtime system's internal representation of
+$\mathqd{Input}$ and $\mathqd{Output}$ do not affect existing user programs.
+%
+For example a function
+$\mathtt{keyboard}\;\hastype\mathqd{Input}\to\mathtt{[Key]}$ says which keys
+were pressed in the time-step associated with the input.
 
-The upshot of this execution model is that the standard lazy operational
-semantics of copattern matching can be used to execute reactive programs!
-This corroborates our earlier remark that reactive programming is simply lazy
-programming in which the evaluation need is \emph{external}.
-Indeed, the evaluation is triggered at each time step by the runtime system by
-executing the head of the stream, taking its tail, and supplying a $\next$
-observation.
+To run a user program, the runtime system generates a value of type
+$\mathqd{Input}$ at each time step to form the input stream. The runtime system
+then processes the output stream generated by the user program and executes any
+actions described by the $\mathqd{Output}$ type. (Side effects are encapsulated
+in this type.)
 
-\section{Type safety}
+This makes precise the earlier notion of ``external evaluation demand''. The
+runtime system can be thought of as possessing an unbounded supply of $\next$
+observations which it feeds to the user program gradually.
+A user program can only make a $\next$ observation if it has moved under a
+$\next$ copattern (this is clear from the typing rules) so it can be thought of
+as propagating these $\next$s as it receives them from the runtime system.
 
+The upshot of this evaluation scheme is that the traditional evaluation model
+for copatterns works unchanged! Consequently, when running a user program, all
+timing information can be removed, since it is embedded in the program via the
+$\next$ observations. We have type safety for the language in which we erase
+the time indices on our judgments, so we argue that our language is also
+type-safe.
+
+\section{Conclusion and future work}
+
+We have presented a surface-level language that bridges copatterns and temporal
+logic.
+Specifically, we suggest thinking about temporal values of type $\circle T$ as
+codata, since intuitively they represent a computation scheduled to run on the
+next tick.
+Reactive programming is simply lazy programming where the evaluation demand is
+external.
+We have observed that by using a time-indexed typing judgment and copattern
+matching, the standard operational semantics are sufficient for running our
+programs.
+This opens the door to writing typechecker plugins for existing languages such
+as Haskell in order to provide an FRP library with causality guarantees.
+
+One aspect of our work that is lacking is normalization. Without normalization,
+we cannot really say that a fair scheduler implemented in our system is indeed
+fair: it could go into an infinite loop, thus starving all request streams.
+Indeed, Cave et al.\cite{ltl} remark that the fairness guarantees that their
+system can give are a consequence of normalization.
+
+One approach to giving a normalization guarantee is to give a shallow embedding
+of our time-indexed typing into a dependently-typed programming language such
+as Agda.
+Hence, users of such an Agda library can have causality guarantees as well as
+fairness guarantees.
+David and I have begun looking into this and have made some progress.
+
+% \subsection{Type safety}
+% \label{subsec:type-safety}
+% 
+% \begin{figure}[ht]
+%   \begin{align*}
+%     \syn{Stacks} E
+%       \eq \cdot \galt v\; E \galt \obs\; E \galt (\ctor\;\bullet) E
+%       \galt (\bullet, t) E \galt (v, \bullet) E \galt (t\;\bullet) E
+%   \end{align*}
+% 
+%   \begin{equation*}
+%     \boxed{t; E \evalto t^\prime ; E^\prime}
+%   \end{equation*}
+% 
+%   \begin{align*}
+%     (t_1, t_2); E &\evalto^0 t_1; (\bullet, t_2); E \\
+%     v; (\bullet, t) E &\evalto^0 (v, t); E \\
+%     (v, t); E &\evalto^0 t; (v, \bullet) E \\
+%     v_2; (v_1, \bullet) E &\evalto^0 (v_1, v_2); E \\
+%     ~&~\\
+%     \ctor\; t; E &\evalto^0 t; (\ctor\;\bullet) E \\
+%     v; (\ctor\;\bullet) E &\evalto^0 \ctor\;v ; E \\
+%     t\next; E &\evalto^{-1} t; \next\; E \\
+%     t\obs; E &\evalto^0 t; \obs\; E\\
+%     ~&~\\
+%     t_1\;t_2; E &\evalto t_2; (t_1\;\bullet) E \\
+%     v; (t\;\bullet) E &\evalto t\; v; E \\
+%     t\; v; E &\evalto t \; v E \\
+%     ~&~\\
+%     \fun\; \overrightarrow{q_i \goesto t_i}; E
+%     &\evalto^k [\sigma]t_k; E^\prime
+%   \end{align*}
+% 
+%   \caption{%
+%     The operational semantics of our system is given by the execution rules for
+%     an abstract stack machine.
+%     These rules are standard, except we add an index that explains how the rule
+%     relates to the time.
+%     In the rule for evaluating a function, the sustitution $\sigma$ is obtained
+%     by pattern matching, and removes the right number of values and
+%     observations from the stack to produce $E^\prime$. The index $k$ on that
+%     rule is the number of $\next$ observations that were consumed from the
+%     stack, which the evaluator can now ``spend'' when evaluating the body.
+%   }
+%   \label{fig:operational}
+% \end{figure}
 
 \pagebreak
 \printbibliography%
