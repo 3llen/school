@@ -1,9 +1,7 @@
 ---
-title: "Notes: Focused Inductive Theorem Proving"
+title: "Focused Inductive Theorem Proving"
 pdf: "focused-inductive-atp.pdf"
 ---
-
-# Focused Inductive Theorem Proving
 
 Discusses proof search using the _intuitionistic sequent calculus_, system
 mu-LJ.
